@@ -132,6 +132,7 @@ include_directories(
 
 ## Declare a C++ executable
 add_executable(hello_world src/ji_hw.cpp)
+set_target_properties(hello_world PROPERTIES COMPILE_FLAGS "-std=c++11")
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
