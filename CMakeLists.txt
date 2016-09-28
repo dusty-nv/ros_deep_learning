@@ -12,6 +12,10 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 find_package(jetson-inference REQUIRED)
+find_package(CUDA REQUIRED)
+find_package(Qt4 REQUIRED)
+include(${QT_USE_FILE})
+add_definitions(${QT_DEFINITIONS})
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -118,6 +122,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${CUDA_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -133,6 +138,8 @@ include_directories(
 ## Declare a C++ executable
 add_executable(hello_world src/ji_hw.cpp)
 set_target_properties(hello_world PROPERTIES COMPILE_FLAGS "-std=c++11")
+add_executable(imagenet_node src/imagenet_node.cpp)
+set_target_properties(imagenet_node PROPERTIES COMPILE_FLAGS "-std=c++11")
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -141,6 +148,11 @@ set_target_properties(hello_world PROPERTIES COMPILE_FLAGS "-std=c++11")
 ## Specify libraries to link a library or executable target against
 target_link_libraries(hello_world
   ${catkin_LIBRARIES}
+)
+target_link_libraries(imagenet_node
+  ${catkin_LIBRARIES}
+  jetson-inference
+  #${CUDA_LIBRARIES}
 )
 
 #############
