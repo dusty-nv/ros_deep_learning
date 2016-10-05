@@ -18,14 +18,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${CUDA_INCLUDE_DIRS}
 )
-add_executable(hello_world src/ji_hw.cpp)
-set_target_properties(hello_world PROPERTIES COMPILE_FLAGS "-std=c++11")
 add_executable(imagenet_node src/imagenet_node.cpp)
 set_target_properties(imagenet_node PROPERTIES COMPILE_FLAGS "-std=c++11")
 
-target_link_libraries(hello_world
-  ${catkin_LIBRARIES}
-)
 target_link_libraries(imagenet_node
   ${catkin_LIBRARIES}
   jetson-inference

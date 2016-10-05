@@ -20,6 +20,8 @@ class ros_imagenet
         ~ros_imagenet()
         {
             ROS_INFO("\nshutting down...\n");
+            if(gpu_data)
+                CUDA(cudaFree(gpu_data));
             delete net;
         }
         // onInit will make nodelet conversion easy
@@ -43,7 +45,11 @@ class ros_imagenet
             class_pub = private_nh.advertise<std_msgs::Int32>("class",10);
             // publisher for human-readable classifier output
             class_str_pub = private_nh.advertise<std_msgs::String>("class_str",10);
+
+            // init gpu memory
+            gpu_data = NULL;
         }
+
 
     private:
         void callback(const sensor_msgs::ImageConstPtr& input)
@@ -56,27 +62,24 @@ class ros_imagenet
             // convert color
             cv::cvtColor(cv_im,cv_im,CV_BGR2RGBA);
 
+            // allocate GPU data if necessary
+            if(!gpu_data){
+                ROS_INFO("first allocation");
+                CUDA(cudaMalloc(&gpu_data, cv_im.rows*cv_im.cols * sizeof(float4)));
+            }else if(imgHeight != cv_im.rows || imgWidth != cv_im.cols){
+                ROS_INFO("re allocation");
+                // reallocate for a new image size if necessary
+                CUDA(cudaFree(gpu_data));
+                CUDA(cudaMalloc(&gpu_data, cv_im.rows*cv_im.cols * sizeof(float4)));
+            }
+
             imgHeight = cv_im.rows;
             imgWidth = cv_im.cols;
-            imgPixels = imgHeight*imgWidth;
-            imgSize = imgPixels * sizeof(float4);
+            imgSize = cv_im.rows*cv_im.cols * sizeof(float4);
             float4* cpu_data = (float4*)(cv_im.data);
 
-            // (failed cuda solution) register mapped memory
-            //CUDA(cudaHostRegister(cpu_data, imgSize, cudaHostRegisterMapped));
-            //float4* gpu_data;
-            //CUDA(cudaHostGetDevicePointer(&gpu_data, cpu_data, cudaHostRegisterMapped));
-
-            // (working cuda solution) allocate cuda memory
-            CUDA(cudaMalloc(&gpu_data, imgSize));
             // copy to device
             CUDA(cudaMemcpy(gpu_data, cpu_data, imgSize, cudaMemcpyHostToDevice));
-            // double check real quick...
-            // float4* cpu_data2 = (float4*) malloc(imgPixels * sizeof(float4));
-            // cudaMemcpy(cpu_data2, gpu_data, imgSize, cudaMemcpyDeviceToHost);
-            // cv::Mat cv_im2(imgHeight, imgWidth, CV_32FC3,(void*) cpu_data2);
-            // cv::imwrite("writeout2.png",cv_im2);
-            // free(cpu_data2);
 
             float confidence = 0.0f;
 
@@ -92,19 +95,8 @@ class ros_imagenet
             class_msg_str.data = net->GetClassDesc(img_class);
             class_str_pub.publish(class_msg_str);
 
-            //if( img_class < 0 )
-            //    ROS_INFO("imagenet-console:  failed to classify (result=%i)\n", img_class);
-            //else
-            //{
-            //    ROS_INFO("imagenet-console: image classified -> %2.5f%% class #%i (%s)\n",
-            //            confidence * 100.0f, img_class, net->GetClassDesc(img_class));
-            //}
-
-            // (part of failed solution) unregister mapped memory
-            // CUDA(cudaHostUnregister(cpu_data));
-
-            // (part of working solution)
-            CUDA(cudaFree(gpu_data));
+            if( img_class < 0 )
+                ROS_INFO("imagenet-console:  failed to classify (result=%i)\n", img_class);
 
         }
 
@@ -118,7 +110,6 @@ class ros_imagenet
 
         uint32_t imgWidth;
         uint32_t imgHeight;
-        uint32_t imgPixels;
         size_t   imgSize;
 
 };
