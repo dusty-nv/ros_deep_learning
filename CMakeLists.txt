@@ -14,6 +14,9 @@ find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
+catkin_package(
+)
+
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${CUDA_INCLUDE_DIRS}
