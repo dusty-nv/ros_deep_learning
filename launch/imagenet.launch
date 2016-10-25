@@ -1,0 +1,7 @@
+<launch>
+    <rosparam  file="$(find ros_deep_learning)/config/paths.yaml" command="load"/>
+    <node name="imagenet_node" pkg="ros_deep_learning" type="imagenet_node" output="screen">
+        <remap from="imin" to="/usb_cam/image_raw"/>
+        <env name="PWD" value="/home/ubuntu/code/source/jetson-inference/build/aarch64/bin"/>
+    </node>
+</launch>

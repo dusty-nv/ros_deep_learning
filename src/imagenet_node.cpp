@@ -27,8 +27,14 @@ class ros_imagenet
         // onInit will make nodelet conversion easy
         void onInit(ros::NodeHandle& private_nh)
         {
+            // get parameters from server
+            std::string prototxt_path, model_path, mean_binary_path, class_labels_path;
+            prototxt_path = private_nh.getParam("prototxt_path", prototxt_path);
+            model_path = private_nh.getParam("model_path", model_path);
+            class_labels_path = private_nh.getParam("class_labels_path", class_labels_path);
+
             // create imageNet
-            net = imageNet::Create();
+            net = imageNet::Create(prototxt_path.c_str(),model_path.c_str(),NULL,class_labels_path.c_str());
             if( !net )
             {
                 ROS_INFO("imagenet-console:   failed to initialize imageNet\n");

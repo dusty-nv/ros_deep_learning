@@ -1,0 +1,5 @@
+imagenet:
+    prototxt_path: "/home/ubuntu/code/source/jetson-inference/build/aarch64/bin/googlenet.prototxt"
+    model_path: "/home/ubuntu/code/source/jetson-inference/build/aarch64/bin/bvlc_googlenet.caffemodel"
+    class_labels_path: "/home/ubuntu/code/source/jetson-inference/build/aarch64/bin/ilsvrc12_sysnet_words.txt"
+
