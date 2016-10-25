@@ -1,6 +1,15 @@
 <launch>
+    <!-- set parameters -->
     <rosparam  file="$(find ros_deep_learning)/config/paths.yaml" command="load"/>
-    <node name="imagenet_node" pkg="ros_deep_learning" type="imagenet_node" output="screen">
-        <remap from="~imin" to="/usb_cam/image_raw"/>
+
+    <!-- Nodelet manager -->
+    <node pkg="nodelet" type="nodelet" name="standalone_nodelet"  args="manager" output="screen"/>
+
+    <!-- ros_imagenet nodelet -->
+    <node name="imagenet_node"
+          pkg="nodelet" type="nodelet"
+          args="load ros_deep_learning/ros_imagenet standalone_nodelet"
+          output="screen">
+          <remap from="~imin" to="/usb_cam/image_raw"/>
     </node>
 </launch>

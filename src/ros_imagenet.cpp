@@ -12,8 +12,12 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
 
+#include <pluginlib/class_list_macros.h>
+#include <nodelet/nodelet.h>
 
-class ros_imagenet
+namespace ros_deep_learning{
+
+class ros_imagenet : public nodelet::Nodelet
 {
     public:
         ~ros_imagenet()
@@ -23,9 +27,10 @@ class ros_imagenet
                 CUDA(cudaFree(gpu_data));
             delete net;
         }
-        // onInit will make nodelet conversion easy
-        void onInit(ros::NodeHandle& private_nh)
+        void onInit()
         {
+            // get a private nodehandle
+            ros::NodeHandle& private_nh = getPrivateNodeHandle();
             // get parameters from server, checking for errors as it goes
             std::string prototxt_path, model_path, mean_binary_path, class_labels_path;
             if(! private_nh.getParam("prototxt_path", prototxt_path) )
@@ -51,9 +56,7 @@ class ros_imagenet
                 return;
             }
 
-            // subscribe to image feed on imin
-            ROS_INFO("Ryan, uncomment the line under this message when you switch to nodelet operation");
-            //ros::NodeHandle& private_nh = getPrivateNodeHandle();
+            // setup image transport
             image_transport::ImageTransport it(private_nh);
             // subscriber for passing in images
             imsub = it.subscribe("imin", 10, &ros_imagenet::callback, this);
@@ -127,21 +130,8 @@ class ros_imagenet
         uint32_t imgWidth;
         uint32_t imgHeight;
         size_t   imgSize;
-
 };
 
-// main entry point
-int main( int argc, char** argv )
-{
-    // init ros node
-    ros::init(argc, argv, "imagenet_node");
-    ros::NodeHandle n("~");
+PLUGINLIB_DECLARE_CLASS(ros_deep_learning, ros_imagenet, ros_deep_learning::ros_imagenet, nodelet::Nodelet);
 
-    ros_imagenet rin;
-
-    rin.onInit(n);
-
-    ros::spin();
-
-    return 0;
-}
+} // namespace ros_deep_learning

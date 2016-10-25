@@ -15,16 +15,25 @@ include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
 catkin_package(
+    LIBRARIES ros_deep_learning_nodelets
+    CATKIN_DEPENDS nodelet roscpp cv_bridge image_transport sensor_msgs
 )
 
+# the library we are going to compile (has all of the nodelets in it)
+add_library(ros_deep_learning_nodelets src/ros_imagenet.cpp)
+# includes
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${CUDA_INCLUDE_DIRS}
 )
-add_executable(imagenet_node src/imagenet_node.cpp)
-set_target_properties(imagenet_node PROPERTIES COMPILE_FLAGS "-std=c++11")
-
-target_link_libraries(imagenet_node
+# compile option
+set_target_properties(ros_deep_learning_nodelets PROPERTIES COMPILE_FLAGS "-std=c++11")
+# link agains these objects
+target_link_libraries(ros_deep_learning_nodelets
   ${catkin_LIBRARIES}
   jetson-inference
 )
+
+#if(catkin_EXPORTED_LIBRARIES)
+#    add_dependencies(ros_deep_learning_nodelets ${catkin_EXPORTED_LIBRARIES})
+#endif()
