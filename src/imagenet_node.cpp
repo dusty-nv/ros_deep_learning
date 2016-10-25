@@ -13,7 +13,6 @@
 #include <std_msgs/Int32.h>
 
 
-
 class ros_imagenet
 {
     public:
@@ -27,11 +26,22 @@ class ros_imagenet
         // onInit will make nodelet conversion easy
         void onInit(ros::NodeHandle& private_nh)
         {
-            // get parameters from server
+            // get parameters from server, checking for errors as it goes
             std::string prototxt_path, model_path, mean_binary_path, class_labels_path;
-            prototxt_path = private_nh.getParam("prototxt_path", prototxt_path);
-            model_path = private_nh.getParam("model_path", model_path);
-            class_labels_path = private_nh.getParam("class_labels_path", class_labels_path);
+            if(! private_nh.getParam("prototxt_path", prototxt_path) )
+                ROS_ERROR("unable to read prototxt_path for imagenet node");
+            if(! private_nh.getParam("model_path", model_path) )
+                ROS_ERROR("unable to read model_path for imagenet node");
+            if(! private_nh.getParam("class_labels_path", class_labels_path) )
+                ROS_ERROR("unable to read class_labels_path for imagenet node");
+
+            // make sure files exist (and we can read them)
+            if( access(prototxt_path.c_str(),R_OK) )
+                 ROS_ERROR("unable to read file \"%s\", check filename and permissions",prototxt_path.c_str());
+            if( access(model_path.c_str(),R_OK) )
+                 ROS_ERROR("unable to read file \"%s\", check filename and permissions",model_path.c_str());
+            if( access(class_labels_path.c_str(),R_OK) )
+                 ROS_ERROR("unable to read file \"%s\", check filename and permissions",class_labels_path.c_str());
 
             // create imageNet
             net = imageNet::Create(prototxt_path.c_str(),model_path.c_str(),NULL,class_labels_path.c_str());
@@ -124,8 +134,8 @@ class ros_imagenet
 int main( int argc, char** argv )
 {
     // init ros node
-    ros::init(argc, argv, "imagenet");
-    ros::NodeHandle n;
+    ros::init(argc, argv, "imagenet_node");
+    ros::NodeHandle n("~");
 
     ros_imagenet rin;
 
