@@ -1,0 +1,5 @@
+<library path="lib/libros_deep_learning_nodelets">
+    <class name="ros_deep_learning/ros_imagenet" type="ros_deep_learning::ros_imagenet" base_class_type="nodelet::Nodelet">
+        <description>A node to classify images according to ILSVRC classes</description>
+    </class>
+</library>
