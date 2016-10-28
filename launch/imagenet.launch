@@ -10,6 +10,14 @@
           pkg="nodelet" type="nodelet"
           args="load ros_deep_learning/ros_imagenet standalone_nodelet"
           output="screen">
-          <remap from="~imin" to="/usb_cam/image_raw"/>
+          <remap from="~imin" to="/image_raw"/>
     </node>
+
+    <!-- gst_camera nodelet -->
+    <node name="gst_camera"
+          pkg="nodelet" type="nodelet"
+          args="load ros_jetson_video/gst_camera standalone_nodelet">
+          <remap from="~image_raw" to="/image_raw"/>
+    </node>
+
 </launch>

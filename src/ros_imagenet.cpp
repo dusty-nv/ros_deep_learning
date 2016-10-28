@@ -5,7 +5,6 @@
 #include <jetson-inference/cudaFont.h>
 
 #include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 
@@ -75,7 +74,6 @@ class ros_imagenet : public nodelet::Nodelet
         {
             cv::Mat cv_im = cv_bridge::toCvCopy(input, "bgr8")->image;
             ROS_INFO("image ptr at %p",cv_im.data);
-            cv::imwrite("writeout.png",cv_im);
             // convert bit depth
             cv_im.convertTo(cv_im,CV_32FC3);
             // convert color
