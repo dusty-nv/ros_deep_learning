@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include <jetson-inference/imageNet.h>
 
-#include <jetson-inference/loadImage.h>
-#include <jetson-inference/cudaFont.h>
+#include <jetson-utils/loadImage.h>
+#include <jetson-utils/cudaFont.h>
 
 #include <opencv2/core.hpp>
 #include <image_transport/image_transport.h>

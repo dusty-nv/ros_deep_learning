@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
 )
+find_package(jetson-utils REQUIRED)
 find_package(jetson-inference REQUIRED)
 find_package(CUDA REQUIRED)
 find_package(Qt4 REQUIRED)
@@ -20,7 +21,7 @@ catkin_package(
 )
 
 # the library we are going to compile (has all of the nodelets in it)
-add_library(ros_deep_learning_nodelets src/ros_imagenet.cpp)
+add_library(ros_deep_learning_nodelets src/nodelet_imagenet.cpp)
 # includes
 include_directories(
   ${catkin_INCLUDE_DIRS}
