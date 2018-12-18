@@ -20,21 +20,55 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "ros/ros.h"
-#include "std_msgs/String.h"
+#include <ros/ros.h>
 
+#include <sensor_msgs/Image.h>
+//#include <image_transport/image_transport.h>
 #include <jetson-inference/imageNet.h>
-#include <sstream>
+
+#include "image_converter.h"
 
 
+// globals
+imageNet* 	 net = NULL;
+imageConverter* cvt = NULL;
+
+
+// input image subscriber callback
+void img_callback( const sensor_msgs::ImageConstPtr& input )
+{
+	// convert the image to reside on GPU
+	if( !cvt || !cvt->Convert(input) )
+	{
+		ROS_INFO("failed to convert %ux%u %s image", input->width, input->height, input->encoding.c_str());
+		return;	
+	}
+
+	// classify the image
+	float confidence = 0.0f;
+	const int img_class = net->Classify(cvt->ImageGPU(), cvt->GetWidth(), cvt->GetHeight(), &confidence);
+	
+
+	// overlay the classification on the image
+	if( img_class >= 0 )
+		ROS_INFO("classified image, %f %s (class=%i)", confidence, net->GetClassDesc(img_class), img_class);
+	else
+		ROS_ERROR("failed to classify image");
+}
+
+
+// node main loop
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "imagenet");
-  
-	ros::NodeHandle n;
+ 
+	ros::NodeHandle nh;
 
 
-	imageNet* net = imageNet::Create();
+	/*
+	 * load image recognition network
+	 */
+	net = imageNet::Create();
 
 	if( !net )
 	{
@@ -42,28 +76,33 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-
-	ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 1000);
-	ros::Rate loop_rate(10);
-
-	int count = 0;
-	while (ros::ok())
+	/*
+	 * create an image converter object
+	 */
+	cvt = new imageConverter();
+	
+	if( !cvt )
 	{
-		std_msgs::String msg;
-
-		std::stringstream ss;
-		ss << "hello from ROS! " << count;
-		msg.data = ss.str();
-
-		ROS_INFO("%s", msg.data.c_str());
-
-		chatter_pub.publish(msg);
-
-		ros::spinOnce();
-
-		loop_rate.sleep();
-		++count;
+		ROS_ERROR("failed to create imageConverter object");
+		return 0;
 	}
+
+	ROS_INFO("done new imageConverter()");
+
+	/*
+	 * subscribe to image topic
+	 */
+	//image_transport::ImageTransport it(nh);	// BUG - stack smashing on TX2?
+	//image_transport::Subscriber img_sub = it.subscribe("image", 1, img_callback);
+
+	ros::Subscriber img_sub = nh.subscribe("image", 1, img_callback);
+	
+	/*
+	 * wait for messages
+	 */
+	ROS_INFO("imagenet node initialized, waiting for messages");
+
+	ros::spin();
 
 	return 0;
 }
