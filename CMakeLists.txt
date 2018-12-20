@@ -40,10 +40,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 add_executable(imagenet src/node_imagenet.cpp src/image_converter.cpp)
 target_link_libraries(imagenet ${catkin_LIBRARIES} jetson-inference)
 
+add_executable(detectnet src/node_detectnet.cpp src/image_converter.cpp)
+target_link_libraries(detectnet ${catkin_LIBRARIES} jetson-inference)
+
+
 # the library we are going to compile (has all of the nodelets in it)
 add_library(ros_deep_learning_nodelets src/nodelet_imagenet.cpp)
 target_link_libraries(ros_deep_learning_nodelets ${catkin_LIBRARIES} jetson-inference)
 
+
 #if(catkin_EXPORTED_LIBRARIES)
 #    add_dependencies(ros_deep_learning_nodelets ${catkin_EXPORTED_LIBRARIES})
 #endif()
+
