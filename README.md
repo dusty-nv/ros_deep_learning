@@ -75,7 +75,7 @@ Before proceeding, make sure that `roscore` is running first:
 $ roscore
 ```
 
-## ImageNet
+## imageNet
 
 First, to stream some image data for the inferencing node to process, open another terminal and start an [`image_publisher`](http://wiki.ros.org/image_publisher), which loads a specified image from disk.  We tell it to load one of the test images that come with jetson-inference, but you can substitute your own images here as well:
 
@@ -97,7 +97,7 @@ In another terminal, you should be able to verify the [`vision_msgs/Classificati
 $ rostopic echo /imagenet/classification
 ```
 
-## DetectNet
+## detectNet
 
 Kill the other nodes you launched above, and start publishing a new image with people in it for the [`detectnet`](src/node_detectnet.cpp) node to process:
 
