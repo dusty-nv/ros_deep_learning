@@ -4,9 +4,8 @@
 #include <jetson-utils/loadImage.h>
 #include <jetson-utils/cudaFont.h>
 
-#include <opencv2/core.hpp>
 #include <image_transport/image_transport.h>
-#include <cv_bridge/cv_bridge.h>
+#include "image_converter.h"
 
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
@@ -22,8 +21,6 @@ class ros_imagenet : public nodelet::Nodelet
         ~ros_imagenet()
         {
             ROS_INFO("\nshutting down...\n");
-            if(gpu_data)
-                CUDA(cudaFree(gpu_data));
             delete net;
         }
         void onInit()
@@ -51,9 +48,18 @@ class ros_imagenet : public nodelet::Nodelet
             net = imageNet::Create(prototxt_path.c_str(),model_path.c_str(),NULL,class_labels_path.c_str());
             if( !net )
             {
-                ROS_INFO("imagenet-console:   failed to initialize imageNet\n");
+                ROS_ERROR("imagenet:   failed to initialize imageNet model");
                 return;
             }
+
+		  // create image converter
+		  imgCvt = new imageConverter();
+	
+		  if( !imgCvt )
+		  {
+			ROS_ERROR("failed to create imageConverter object");
+			return;
+		  }
 
             // setup image transport
             image_transport::ImageTransport it(private_nh);
@@ -63,45 +69,23 @@ class ros_imagenet : public nodelet::Nodelet
             class_pub = private_nh.advertise<std_msgs::Int32>("class",10);
             // publisher for human-readable classifier output
             class_str_pub = private_nh.advertise<std_msgs::String>("class_str",10);
-
-            // init gpu memory
-            gpu_data = NULL;
         }
 
 
     private:
         void callback(const sensor_msgs::ImageConstPtr& input)
         {
-            cv::Mat cv_im = cv_bridge::toCvCopy(input, "bgr8")->image;
-            ROS_INFO("image ptr at %p",cv_im.data);
-            // convert bit depth
-            cv_im.convertTo(cv_im,CV_32FC3);
-            // convert color
-            cv::cvtColor(cv_im,cv_im,CV_BGR2RGBA);
-
-            // allocate GPU data if necessary
-            if(!gpu_data){
-                ROS_INFO("first allocation");
-                CUDA(cudaMalloc(&gpu_data, cv_im.rows*cv_im.cols * sizeof(float4)));
-            }else if(imgHeight != cv_im.rows || imgWidth != cv_im.cols){
-                ROS_INFO("re allocation");
-                // reallocate for a new image size if necessary
-                CUDA(cudaFree(gpu_data));
-                CUDA(cudaMalloc(&gpu_data, cv_im.rows*cv_im.cols * sizeof(float4)));
-            }
-
-            imgHeight = cv_im.rows;
-            imgWidth = cv_im.cols;
-            imgSize = cv_im.rows*cv_im.cols * sizeof(float4);
-            float4* cpu_data = (float4*)(cv_im.data);
-
-            // copy to device
-            CUDA(cudaMemcpy(gpu_data, cpu_data, imgSize, cudaMemcpyHostToDevice));
+		  // convert the image to reside on GPU
+		  if( !imgCvt || !imgCvt->Convert(input) )
+		  {
+			ROS_INFO("failed to convert %ux%u %s image", input->width, input->height, input->encoding.c_str());
+			return;	
+		  }
 
             float confidence = 0.0f;
 
             // classify image
-            const int img_class = net->Classify((float*)gpu_data, imgWidth, imgHeight, &confidence);
+            const int img_class = net->Classify(imgCvt->ImageGPU(), imgCvt->GetWidth(), imgCvt->GetHeight(), &confidence);
 
             // publish class
             std_msgs::Int32 class_msg;
@@ -113,23 +97,21 @@ class ros_imagenet : public nodelet::Nodelet
             class_str_pub.publish(class_msg_str);
 
             if( img_class < 0 )
-                ROS_INFO("imagenet-console:  failed to classify (result=%i)\n", img_class);
-
+                ROS_ERROR("imagenet:  failed to classify (result=%i)", img_class);
         }
 
         // private variables
         image_transport::Subscriber imsub;
+        imageConverter* imgCvt;
         ros::Publisher class_pub;
         ros::Publisher class_str_pub;
         imageNet* net;
-
-        float4* gpu_data;
-
-        uint32_t imgWidth;
-        uint32_t imgHeight;
-        size_t   imgSize;
 };
 
-PLUGINLIB_DECLARE_CLASS(ros_deep_learning, ros_imagenet, ros_deep_learning::ros_imagenet, nodelet::Nodelet);
+#if ROS_VERSION_MINIMUM(1, 14, 0)
+	PLUGINLIB_EXPORT_CLASS(ros_deep_learning::ros_imagenet, nodelet::Nodelet);
+#else
+	PLUGINLIB_DECLARE_CLASS(ros_deep_learning, ros_imagenet, ros_deep_learning::ros_imagenet, nodelet::Nodelet);
+#endif
 
 } // namespace ros_deep_learning
