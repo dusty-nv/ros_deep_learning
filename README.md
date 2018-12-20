@@ -30,16 +30,16 @@ Before proceeding, it's worthwhile to test that `jetson-inference` is working pr
 
 ## ROS
 
-Depending on which generation Jetson you're using, install the `ros-base` package following these directions:
+Install the `ros-base` package on your Jetson following these directions:
 
 * TX1/TX2 (ROS Kinetic) - [JetsonHacks Post](https://www.jetsonhacks.com/2018/04/27/robot-operating-system-ros-on-nvidia-jetson-tx-development-kits/)
-* Xavier (ROS Melodic) - [ROS Instructions](http://wiki.ros.org/melodic/Installation/Ubuntu)
+* Xavier (ROS Melodic) - [ROS Install Instructions](http://wiki.ros.org/melodic/Installation/Ubuntu)
 
 Then, create a Catkin workspace (`~/catkin_ws`) using these steps:
 
 http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment#Create_a_ROS_Workspace
 
-And install some additional dependencies:
+Depending on which Jetson you're using, install some additional dependencies:
 
 #### TX1/TX2 (ROS Kinetic)
 ```bash
