@@ -45,7 +45,7 @@ target_link_libraries(detectnet ${catkin_LIBRARIES} jetson-inference)
 
 
 # the library we are going to compile (has all of the nodelets in it)
-add_library(ros_deep_learning_nodelets src/nodelet_imagenet.cpp)
+add_library(ros_deep_learning_nodelets src/nodelet_imagenet.cpp src/image_converter.cpp)
 target_link_libraries(ros_deep_learning_nodelets ${catkin_LIBRARIES} jetson-inference)
 
 
