@@ -24,11 +24,13 @@
 
 #include <sensor_msgs/Image.h>
 #include <vision_msgs/Classification2D.h>
+#include <vision_msgs/VisionInfo.h>
 
 //#include <image_transport/image_transport.h>
 #include <jetson-inference/imageNet.h>
 
 #include "image_converter.h"
+#include <unordered_map>
 
 
 // globals
@@ -37,8 +39,18 @@ imageConverter* cvt = NULL;
 
 ros::Publisher* classify_pub = NULL;
 
+vision_msgs::VisionInfo info_msg;
 
-// input image subscriber callback
+
+// callback triggered when a new subscriber connected to vision_info topic
+void info_connect( const ros::SingleSubscriberPublisher& pub )
+{
+	ROS_INFO("new subscriber '%s' connected to vision_info topic '%s', sending VisionInfo msg", pub.getSubscriberName().c_str(), pub.getTopic().c_str());
+	pub.publish(info_msg);
+}
+
+
+// callback triggered when recieved a new image on input topic
 void img_callback( const sensor_msgs::ImageConstPtr& input )
 {
 	// convert the image to reside on GPU
@@ -136,6 +148,39 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+
+	/*
+	 * create the class labels parameter vector
+	 */
+	std::hash<std::string> model_hasher;  // hash the model path to avoid collisions on the param server
+	std::string model_hash_str = std::string(net->GetModelPath()) + std::string(net->GetClassPath());
+	const size_t model_hash = model_hasher(model_hash_str);
+	
+	ROS_INFO("model hash => %zu", model_hash);
+	ROS_INFO("hash string => %s", model_hash_str.c_str());
+
+	// obtain the list of class descriptions
+	std::vector<std::string> class_descriptions;
+	const uint32_t num_classes = net->GetNumClasses();
+
+	for( uint32_t n=0; n < num_classes; n++ )
+		class_descriptions.push_back(net->GetClassDesc(n));
+
+	// create the key on the param server
+	std::string class_key = std::string("class_labels_") + std::to_string(model_hash);
+	private_nh.setParam(class_key, class_descriptions);
+		
+	// populate the vision info msg
+	std::string node_namespace = private_nh.getNamespace();
+	ROS_INFO("node namespace => %s", node_namespace.c_str());
+
+	info_msg.database_location = node_namespace + std::string("/") + class_key;
+	info_msg.database_version  = 0;
+	info_msg.method 		  = net->GetModelPath();
+	
+	ROS_INFO("class labels => %s", info_msg.database_location.c_str());
+
+
 	/*
 	 * create an image converter object
 	 */
@@ -147,6 +192,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+
 	/*
 	 * subscribe to image topic
 	 */
@@ -154,11 +200,16 @@ int main(int argc, char **argv)
 	//image_transport::Subscriber img_sub = it.subscribe("image", 1, img_callback);
 	ros::Subscriber img_sub = private_nh.subscribe("image_in", 5, img_callback);
 	
+
 	/*
-	 * advertise classification publisher
+	 * advertise publisher topics
 	 */
 	ros::Publisher pub = private_nh.advertise<vision_msgs::Classification2D>("classification", 5);
 	classify_pub = &pub; // we need to publish from the subscriber callback
+
+	// the vision info topic only publishes upon a new connection
+	ros::Publisher info_pub = private_nh.advertise<vision_msgs::VisionInfo>("vision_info", 1, (ros::SubscriberStatusCallback)info_connect);
+
 
 	/*
 	 * wait for messages
