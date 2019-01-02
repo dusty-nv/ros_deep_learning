@@ -24,11 +24,14 @@
 
 #include <sensor_msgs/Image.h>
 #include <vision_msgs/Detection2DArray.h>
+#include <vision_msgs/VisionInfo.h>
 
 #include <jetson-inference/detectNet.h>
 #include <jetson-utils/cudaMappedMemory.h>
 
 #include "image_converter.h"
+
+#include <unordered_map>
 
 
 // globals
@@ -44,6 +47,16 @@ float* confCPU = NULL;
 float* confGPU = NULL;
 
 ros::Publisher* detection_pub = NULL;
+
+vision_msgs::VisionInfo info_msg;
+
+
+// callback triggered when a new subscriber connected to vision_info topic
+void info_connect( const ros::SingleSubscriberPublisher& pub )
+{
+	ROS_INFO("new subscriber '%s' connected to vision_info topic '%s', sending VisionInfo msg", pub.getSubscriberName().c_str(), pub.getTopic().c_str());
+	pub.publish(info_msg);
+}
 
 
 // input image subscriber callback
@@ -87,9 +100,9 @@ void img_callback( const sensor_msgs::ImageConstPtr& input )
 			const float bbWidth  = bb[2] - bb[0];
 			const float bbHeight = bb[3] - bb[1];
 			
+			printf("object %i class #%i (%s)  confidence=%f\n", n, obj_class, net->GetClassDesc(obj_class), obj_conf);
 			printf("object %i bounding box (%f, %f)  (%f, %f)  w=%f  h=%f\n", n, bb[0], bb[1], bb[2], bb[3], bbWidth, bbHeight); 
-			printf("object %i class=%i confidence=%f\n", n, obj_class, obj_conf);
-
+			
 			// create a detection sub-message
 			vision_msgs::Detection2D det;
 
@@ -128,6 +141,7 @@ int main(int argc, char **argv)
 	/*
 	 * retrieve parameters
 	 */
+	std::string class_labels_path;
 	std::string prototxt_path;
 	std::string model_path;
 	std::string model_name;
@@ -150,8 +164,9 @@ int main(int argc, char **argv)
 	private_nh.param<float>("mean_pixel_value", mean_pixel, mean_pixel);
 	private_nh.param<float>("threshold", threshold, threshold);
 
+
 	/*
-	 * load image recognition network
+	 * load object detection network
 	 */
 	if( use_model_name )
 	{
@@ -169,8 +184,11 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		// get the class labels path (optional)
+		private_nh.getParam("class_labels_path", class_labels_path);
+
 		// create network using custom model paths
-		net = detectNet::Create(prototxt_path.c_str(), model_path.c_str(), mean_pixel, threshold);
+		net = detectNet::Create(prototxt_path.c_str(), model_path.c_str(), mean_pixel, class_labels_path.c_str(), threshold);
 	}
 
 	if( !net )
@@ -178,6 +196,7 @@ int main(int argc, char **argv)
 		ROS_ERROR("failed to load detectNet model");
 		return 0;
 	}
+
 
 	/*
 	 * alloc memory for bounding box & confidence value outputs
@@ -195,6 +214,39 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+
+	/*
+	 * create the class labels parameter vector
+	 */
+	std::hash<std::string> model_hasher;  // hash the model path to avoid collisions on the param server
+	std::string model_hash_str = std::string(net->GetModelPath()) + std::string(net->GetClassPath());
+	const size_t model_hash = model_hasher(model_hash_str);
+	
+	ROS_INFO("model hash => %zu", model_hash);
+	ROS_INFO("hash string => %s", model_hash_str.c_str());
+
+	// obtain the list of class descriptions
+	std::vector<std::string> class_descriptions;
+	const uint32_t num_classes = net->GetNumClasses();
+
+	for( uint32_t n=0; n < num_classes; n++ )
+		class_descriptions.push_back(net->GetClassDesc(n));
+
+	// create the key on the param server
+	std::string class_key = std::string("class_labels_") + std::to_string(model_hash);
+	private_nh.setParam(class_key, class_descriptions);
+		
+	// populate the vision info msg
+	std::string node_namespace = private_nh.getNamespace();
+	ROS_INFO("node namespace => %s", node_namespace.c_str());
+
+	info_msg.database_location = node_namespace + std::string("/") + class_key;
+	info_msg.database_version  = 0;
+	info_msg.method 		  = net->GetModelPath();
+	
+	ROS_INFO("class labels => %s", info_msg.database_location.c_str());
+
+
 	/*
 	 * create an image converter object
 	 */
@@ -206,6 +258,17 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+
+	/*
+	 * advertise publisher topics
+	 */
+	ros::Publisher pub = private_nh.advertise<vision_msgs::Detection2DArray>("detections", 25);
+	detection_pub = &pub; // we need to publish from the subscriber callback
+
+	// the vision info topic only publishes upon a new connection
+	ros::Publisher info_pub = private_nh.advertise<vision_msgs::VisionInfo>("vision_info", 1, (ros::SubscriberStatusCallback)info_connect);
+
+
 	/*
 	 * subscribe to image topic
 	 */
@@ -213,11 +276,6 @@ int main(int argc, char **argv)
 	//image_transport::Subscriber img_sub = it.subscribe("image", 1, img_callback);
 	ros::Subscriber img_sub = private_nh.subscribe("image_in", 5, img_callback);
 	
-	/*
-	 * advertise detection publisher
-	 */
-	ros::Publisher pub = private_nh.advertise<vision_msgs::Detection2DArray>("detections", 5);
-	detection_pub = &pub; // we need to publish from the subscriber callback
 
 	/*
 	 * wait for messages
