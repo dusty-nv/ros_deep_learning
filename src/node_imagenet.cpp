@@ -26,10 +26,11 @@
 #include <vision_msgs/Classification2D.h>
 #include <vision_msgs/VisionInfo.h>
 
-//#include <image_transport/image_transport.h>
 #include <jetson-inference/imageNet.h>
+#include <jetson-utils/cudaMappedMemory.h>
 
 #include "image_converter.h"
+
 #include <unordered_map>
 
 
@@ -101,9 +102,9 @@ int main(int argc, char **argv)
 	/*
 	 * retrieve parameters
 	 */
+	std::string class_labels_path;
 	std::string prototxt_path;
 	std::string model_path;
-	std::string class_labels_path;
 	std::string model_name;
 
 	bool use_model_name = false;
@@ -194,14 +195,6 @@ int main(int argc, char **argv)
 
 
 	/*
-	 * subscribe to image topic
-	 */
-	//image_transport::ImageTransport it(nh);	// BUG - stack smashing on TX2?
-	//image_transport::Subscriber img_sub = it.subscribe("image", 1, img_callback);
-	ros::Subscriber img_sub = private_nh.subscribe("image_in", 5, img_callback);
-	
-
-	/*
 	 * advertise publisher topics
 	 */
 	ros::Publisher pub = private_nh.advertise<vision_msgs::Classification2D>("classification", 5);
@@ -210,6 +203,14 @@ int main(int argc, char **argv)
 	// the vision info topic only publishes upon a new connection
 	ros::Publisher info_pub = private_nh.advertise<vision_msgs::VisionInfo>("vision_info", 1, (ros::SubscriberStatusCallback)info_connect);
 
+
+	/*
+	 * subscribe to image topic
+	 */
+	//image_transport::ImageTransport it(nh);	// BUG - stack smashing on TX2?
+	//image_transport::Subscriber img_sub = it.subscribe("image", 1, img_callback);
+	ros::Subscriber img_sub = private_nh.subscribe("image_in", 5, img_callback);
+	
 
 	/*
 	 * wait for messages
