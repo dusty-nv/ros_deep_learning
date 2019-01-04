@@ -48,6 +48,16 @@ public:
 	bool Convert( const sensor_msgs::ImageConstPtr& input );
 
 	/**
+	 * Convert to ROS sensor_msgs::Image message
+	 */
+	bool Convert( sensor_msgs::Image& msg_out, const std::string& encoding );
+
+	/**
+	 * Resize the memory (if necessary)
+	 */
+	bool Resize( uint32_t width, uint32_t height );
+
+	/**
 	 * Retrieve the converted image width
 	 */
 	inline uint32_t GetWidth() const		{ return mWidth; }
