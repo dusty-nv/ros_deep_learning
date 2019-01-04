@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(jetson-utils REQUIRED)
 find_package(jetson-inference REQUIRED)
+
 find_package(CUDA REQUIRED)
 find_package(Qt4 REQUIRED)
 
@@ -42,6 +43,9 @@ target_link_libraries(imagenet ${catkin_LIBRARIES} jetson-inference)
 
 add_executable(detectnet src/node_detectnet.cpp src/image_converter.cpp)
 target_link_libraries(detectnet ${catkin_LIBRARIES} jetson-inference)
+
+add_executable(segnet src/node_segnet.cpp src/image_converter.cpp)
+target_link_libraries(segnet ${catkin_LIBRARIES} jetson-inference)
 
 
 # the library we are going to compile (has all of the nodelets in it)
