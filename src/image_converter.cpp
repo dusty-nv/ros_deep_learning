@@ -28,6 +28,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/image_encodings.h>
 
+#include "cudaBGR.h"
 
 // constructor
 imageConverter::imageConverter()
@@ -55,16 +56,22 @@ imageConverter::~imageConverter()
 bool imageConverter::Convert( const sensor_msgs::ImageConstPtr& input )
 {
 	ROS_INFO("converting %ux%u %s image", input->width, input->height, input->encoding.c_str());
-
-	// confirm bgr8 encoding
-	if( input->encoding != sensor_msgs::image_encodings::BGR8 )
-	{
-		ROS_ERROR("%ux%u image is in %s format, expected %s", input->width, input->height, input->encoding.c_str(), sensor_msgs::image_encodings::BGR8.c_str());
+	if( input->encoding != sensor_msgs::image_encodings::BGR8 &&  
+            input->encoding != sensor_msgs::image_encodings::BGRA8 )
+        {
+	    ROS_ERROR("%ux%u image is in %s format, expected BGR8 or BGRA8", input->width, input->height, input->encoding.c_str());
 		return false;
-	}
+        }
+       // Default to uchar3
+       bool isBGRA8 = false ;
+       size_t pixel_byte_size = sizeof(uchar3) ;
+       if (input->encoding == sensor_msgs::image_encodings::BGRA8) {
+         pixel_byte_size = sizeof(uchar4) ;
+         isBGRA8 = true;
+       }
 
-	// confirm step size
-	const uint32_t input_stride = input->width * sizeof(uchar3);
+       // confirm step size
+       const uint32_t input_stride = input->width * pixel_byte_size;
 
 	if( input->step != input_stride )
 	{
@@ -72,21 +79,34 @@ bool imageConverter::Convert( const sensor_msgs::ImageConstPtr& input )
 		return false;
 	}
 
-	// assure memory allocation
+        // assure memory allocation
 	if( !Resize(input->width, input->height) )
 		return false;
 	
 	// copy input to shared memory
-	memcpy(mInputCPU, input->data.data(), input->width * input->height * sizeof(uchar3));	// note: 3 channels assumes bgr/rgb			
-	
-	// convert to RGBA32f format
-	if( CUDA_FAILED(cudaBGR8ToRGBA32((uchar3*)mInputGPU, (float4*)mOutputGPU, mWidth, mHeight)) )
-	{
-		ROS_ERROR("failed to convert %ux%u image with CUDA", mWidth, mHeight);
-		return false;
-	}
+	memcpy(mInputCPU, input->data.data(), input->width * input->height * pixel_byte_size);
 
-	return true;
+
+        // convert to RGBA32f format
+        if (!isBGRA8)
+         { // Should be BGR8 - convert to RGBA32
+	   if( CUDA_FAILED(cudaBGR8ToRGBA32((uchar3*)mInputGPU, (float4*)mOutputGPU, mWidth, mHeight)) )
+	    {
+	      ROS_ERROR("failed to convert %ux%u image with CUDA", mWidth, mHeight);
+	      return false;
+	    }
+         }
+         else {
+           // Should be BGRA8 - convert to RGBA32
+           if( CUDA_FAILED(cudaBGRA8ToRGBA32((uchar4*)mInputGPU, (float4*)mOutputGPU, mWidth, mHeight)) )
+	      {
+		  ROS_ERROR("failed to convert %ux%u image with CUDA", mWidth, mHeight);
+		  return false;
+	      }
+         }
+
+       return true ;
+
 }
 
 
