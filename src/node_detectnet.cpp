@@ -41,10 +41,7 @@ imageConverter* cvt = NULL;
 uint32_t objClasses = 0;
 uint32_t maxBoxes   = 0;
 
-float* bbCPU   = NULL;
-float* bbGPU   = NULL;
-float* confCPU = NULL;
-float* confGPU = NULL;
+detectNet::Detection* detections   = NULL;
 
 ros::Publisher* detection_pub = NULL;
 
@@ -70,11 +67,10 @@ void img_callback( const sensor_msgs::ImageConstPtr& input )
 	}
 
 	// classify the image
-	int numBoundingBoxes = maxBoxes;
-	const bool result = net->Detect(cvt->ImageGPU(), cvt->GetWidth(), cvt->GetHeight(), bbCPU, &numBoundingBoxes, confCPU);
+	int numBoundingBoxes = net->Detect(cvt->ImageGPU(), cvt->GetWidth(), cvt->GetHeight(), detections, 0);
 
 	// verify success	
-	if( !result )
+	if( numBoundingBoxes < 0 )
 	{
 		ROS_ERROR("failed to run detection on %ux%u image", input->width, input->height);
 		return;
@@ -91,11 +87,11 @@ void img_callback( const sensor_msgs::ImageConstPtr& input )
 		for( int n=0; n < numBoundingBoxes; n++ )
 		{
 			// extract class/confidence pairs
-			const float obj_conf = confCPU[n*2];
-			const int  obj_class = confCPU[n*2+1];
+			const float obj_conf = detections[n].Confidence;
+			const int  obj_class = detections[n].ClassID;
 
 			// extract the bounding box
-			float* bb = bbCPU + (n * 4);
+			float bb[4] = {detections[n].Left, detections[n].Top, detections[n].Right, detections[n].Bottom};
 
 			const float bbWidth  = bb[2] - bb[0];
 			const float bbHeight = bb[3] - bb[1];
@@ -202,18 +198,12 @@ int main(int argc, char **argv)
 	 * alloc memory for bounding box & confidence value outputs
 	 */
 	objClasses = net->GetNumClasses();
-	maxBoxes   = net->GetMaxBoundingBoxes();		
+	maxBoxes   = net->GetMaxDetections();		
 	
 	ROS_INFO("object classes:  %u", objClasses);
 	ROS_INFO("maximum bounding boxes:  %u\n", maxBoxes);
 	
-	if( !cudaAllocMapped((void**)&bbCPU, (void**)&bbGPU, maxBoxes * sizeof(float) * 4) ||
-	    !cudaAllocMapped((void**)&confCPU, (void**)&confGPU, maxBoxes * objClasses * sizeof(float)) )
-	{
-		ROS_ERROR("detectnet:  failed to alloc bounding box output memory");
-		return 0;
-	}
-
+	detections = new detectNet::Detection [maxBoxes];
 
 	/*
 	 * create the class labels parameter vector
