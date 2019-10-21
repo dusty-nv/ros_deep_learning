@@ -251,7 +251,7 @@ int main(int argc, char **argv)
 
 	for( uint32_t n=0; n < num_classes; n++ )
 	{
-		const char* label = net->GetClassLabel(n);
+		const char* label = net->GetClassDesc(n);
 
 		if( label != NULL )
 			class_descriptions.push_back(label);

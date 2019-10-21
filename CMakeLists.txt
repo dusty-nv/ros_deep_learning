@@ -15,10 +15,10 @@ find_package(jetson-utils REQUIRED)
 find_package(jetson-inference REQUIRED)
 
 find_package(CUDA REQUIRED)
-find_package(Qt4 REQUIRED)
+#find_package(Qt4 REQUIRED)
 
-include(${QT_USE_FILE})
-add_definitions(${QT_DEFINITIONS})
+#include(${QT_USE_FILE})
+#add_definitions(${QT_DEFINITIONS})
 
 
 # define catkin package

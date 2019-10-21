@@ -38,14 +38,6 @@
 detectNet* 	 net = NULL;
 imageConverter* cvt = NULL;
 
-uint32_t objClasses = 0;
-uint32_t maxBoxes   = 0;
-
-float* bbCPU   = NULL;
-float* bbGPU   = NULL;
-float* confCPU = NULL;
-float* confGPU = NULL;
-
 ros::Publisher* detection_pub = NULL;
 
 vision_msgs::VisionInfo info_msg;
@@ -70,58 +62,54 @@ void img_callback( const sensor_msgs::ImageConstPtr& input )
 	}
 
 	// classify the image
-	int numBoundingBoxes = maxBoxes;
-	const bool result = net->Detect(cvt->ImageGPU(), cvt->GetWidth(), cvt->GetHeight(), bbCPU, &numBoundingBoxes, confCPU);
+	detectNet::Detection* detections = NULL;
+
+	const int numDetections = net->Detect(cvt->ImageGPU(), cvt->GetWidth(), cvt->GetHeight(), &detections, detectNet::OVERLAY_NONE);
 
 	// verify success	
-	if( !result )
+	if( numDetections < 0 )
 	{
-		ROS_ERROR("failed to run detection on %ux%u image", input->width, input->height);
+		ROS_ERROR("failed to run object detection on %ux%u image", input->width, input->height);
 		return;
 	}
 
 	// if objects were detected, send out message
-	if( numBoundingBoxes > 0 )
+	if( numDetections > 0 )
 	{
-		ROS_INFO("detected %i objects in %ux%u image", numBoundingBoxes, input->width, input->height);
+		ROS_INFO("detected %i objects in %ux%u image", numDetections, input->width, input->height);
 		
 		// create a detection for each bounding box
 		vision_msgs::Detection2DArray msg;
 
-		for( int n=0; n < numBoundingBoxes; n++ )
+		for( int n=0; n < numDetections; n++ )
 		{
-			// extract class/confidence pairs
-			const float obj_conf = confCPU[n*2];
-			const int  obj_class = confCPU[n*2+1];
+			detectNet::Detection* det = detections + n;
 
-			// extract the bounding box
-			float* bb = bbCPU + (n * 4);
-
-			const float bbWidth  = bb[2] - bb[0];
-			const float bbHeight = bb[3] - bb[1];
-			
-			printf("object %i class #%i (%s)  confidence=%f\n", n, obj_class, net->GetClassDesc(obj_class), obj_conf);
-			printf("object %i bounding box (%f, %f)  (%f, %f)  w=%f  h=%f\n", n, bb[0], bb[1], bb[2], bb[3], bbWidth, bbHeight); 
+			printf("object %i class #%u (%s)  confidence=%f\n", n, det->ClassID, net->GetClassDesc(det->ClassID), det->Confidence);
+			printf("object %i bounding box (%f, %f)  (%f, %f)  w=%f  h=%f\n", n, det->Left, det->Top, det->Right, det->Bottom, det->Width(), det->Height()); 
 			
 			// create a detection sub-message
-			vision_msgs::Detection2D det;
+			vision_msgs::Detection2D detMsg;
 
-			det.bbox.size_x = bbWidth;
-			det.bbox.size_y = bbHeight;
+			detMsg.bbox.size_x = det->Width();
+			detMsg.bbox.size_y = det->Height();
 			
-			det.bbox.center.x = bb[0] + bbWidth * 0.5f;
-			det.bbox.center.y = bb[1] + bbHeight * 0.5f;
+			float cx, cy;
+			det->Center(&cx, &cy);
 
-			det.bbox.center.theta = 0.0f;		// TODO optionally output object image
+			detMsg.bbox.center.x = cx;
+			detMsg.bbox.center.y = cy;
+
+			detMsg.bbox.center.theta = 0.0f;		// TODO optionally output object image
 
 			// create classification hypothesis
 			vision_msgs::ObjectHypothesisWithPose hyp;
 			
-			hyp.id = obj_class;
-			hyp.score = obj_conf;
+			hyp.id = det->ClassID;
+			hyp.score = det->Confidence;
 
-			det.results.push_back(hyp);
-			msg.detections.push_back(det);
+			detMsg.results.push_back(hyp);
+			msg.detections.push_back(detMsg);
 		}
 
 		// publish the detection message
@@ -153,7 +141,7 @@ int main(int argc, char **argv)
 	    !private_nh.getParam("model_path", model_path) )
 	{
 		// without custom model, use one of the built-in pretrained models
-		private_nh.param<std::string>("model_name", model_name, "pednet");
+		private_nh.param<std::string>("model_name", model_name, "ssd-mobilenet-v2");
 		use_model_name = true;
 	}
 
@@ -194,23 +182,6 @@ int main(int argc, char **argv)
 	if( !net )
 	{
 		ROS_ERROR("failed to load detectNet model");
-		return 0;
-	}
-
-
-	/*
-	 * alloc memory for bounding box & confidence value outputs
-	 */
-	objClasses = net->GetNumClasses();
-	maxBoxes   = net->GetMaxBoundingBoxes();		
-	
-	ROS_INFO("object classes:  %u", objClasses);
-	ROS_INFO("maximum bounding boxes:  %u\n", maxBoxes);
-	
-	if( !cudaAllocMapped((void**)&bbCPU, (void**)&bbGPU, maxBoxes * sizeof(float) * 4) ||
-	    !cudaAllocMapped((void**)&confCPU, (void**)&confGPU, maxBoxes * objClasses * sizeof(float)) )
-	{
-		ROS_ERROR("detectnet:  failed to alloc bounding box output memory");
 		return 0;
 	}
 
