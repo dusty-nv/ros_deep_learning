@@ -3,13 +3,13 @@ This repo contains deep learning inference nodes for ROS with support for Jetson
 
 The nodes use the image recognition, object detection, and semantic segmentation DNN's from the [`jetson-inference`](https://github.com/dusty-nv/jetson-inference) library and [NVIDIA Hello AI World](https://developer.nvidia.com/embedded/twodaystoademo) tutorial, which come with several built-in pretrained networks for classification, detection, and segmentation and the ability to load customized user-trained models.
 
-ROS Melodic (for JetPack 4.2 and Ubuntu 18.04) is recommended, but ROS Kinetic (JetPack 3.3 and Ubuntu 16.04 on TX1/TX2) should work as well.  Melodic is supported on Nano/TX1/TX2/Xavier while Kinetic runs on TX1/TX2 only.
+ROS Melodic (for JetPack 4.2 and Ubuntu 18.04) is recommended, but ROS Kinetic (JetPack 3.3 and Ubuntu 16.04 on TX1/TX2) should work as well.  ROS Melodic is supported on Nano/TX1/TX2/Xavier, while Kinetic runs on TX1/TX2 only.
 
 ### Table of Contents
 
 * [Installation](#installation)
 	* [jetson-inference](#jetson-inference)
-	* [ROS](#ros)
+	* [ROS Melodic / Kinetic](#ros)
 	* [ros_deep_learning](#ros_deep_learning-1)
 * [Testing](#testing)
 	* [imageNet Node](#imagenet-node)
