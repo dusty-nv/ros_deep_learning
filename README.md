@@ -64,8 +64,7 @@ $ sudo apt-get install ros-kinetic-vision-msgs
 
 #### Catkin Workspace
 
-Then, create a Catkin workspace (`~/catkin_ws`) using these steps:
-
+Then, create a Catkin workspace (`~/catkin_ws`) using these steps:  
 http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment#Create_a_ROS_Workspace
 
 
