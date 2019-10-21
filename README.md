@@ -9,7 +9,7 @@ ROS Melodic (for JetPack 4.2 and Ubuntu 18.04) is recommended, but ROS Kinetic (
 
 * [Installation](#installation)
 	* [jetson-inference](#jetson-inference)
-	* [ROS Melodic / Kinetic](#ros)
+	* [ROS Base](#ros-base)
 	* [ros_deep_learning](#ros_deep_learning-1)
 * [Testing](#testing)
 	* [imageNet Node](#imagenet-node)
@@ -39,7 +39,7 @@ $ sudo make install
 Before proceeding, it's worthwhile to test that `jetson-inference` is working properly on your system by following this step of the Hello AI World tutorial:
 * [Classifying Images with ImageNet](https://github.com/dusty-nv/jetson-inference/blob/master/docs/imagenet-console-2.md)
 
-### ROS Melodic / Kinetic
+### ROS Base
 
 Install the `ros-melodic-ros-base` or `ros-kinetic-ros-base` package on your Jetson following these directions:
 
