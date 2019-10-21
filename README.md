@@ -1,17 +1,29 @@
 # ros_deep_learning
 This repo contains deep learning inference nodes for ROS with support for Jetson Nano/TX1/TX2/Xavier and TensorRT.
 
-The nodes use the image recognition, object detection, and semantic segmentation vision objects from the [`jetson-inference`](https://github.com/dusty-nv/jetson-inference) library and [NVIDIA Hello AI World](https://developer.nvidia.com/embedded/twodaystoademo) tutorial, which come with several built-in pretrained networks for classification, detection, and segmentation and the ability to load customized user-trained models.
+The nodes use the image recognition, object detection, and semantic segmentation DNN's from the [`jetson-inference`](https://github.com/dusty-nv/jetson-inference) library and [NVIDIA Hello AI World](https://developer.nvidia.com/embedded/twodaystoademo) tutorial, which come with several built-in pretrained networks for classification, detection, and segmentation and the ability to load customized user-trained models.
 
-ROS Melodic (for JetPack 4.x and Ubuntu 18.04) is recommended, but ROS Kinetic (for JetPack 3.3 and Ubuntu 16.04 on TX1/TX2) should work as well.
+ROS Melodic (for JetPack 4.2 and Ubuntu 18.04) is recommended, but ROS Kinetic (JetPack 3.3 and Ubuntu 16.04 on TX1/TX2) should work as well.  Melodic is supported on Nano/TX1/TX2/Xavier while Kinetic runs on TX1/TX2 only.
+
+### Table of Contents
+
+* [Installation](#installation)
+	* [jetson-inference](#jetson-inference)
+	* [ROS](#ros)
+	* [ros_deep_learning](#ros_deep_learning-1)
+* [Testing](#testing)
+	* [imageNet Node](#imagenet-node)
+	* [detectNet Node](#detectnet-node)
 
 ## Installation
 
-### jetson-inference
-
 First, install the latest [JetPack](https://developer.nvidia.com/embedded/jetpack) on your Jetson (JetPack 4.2.2 for ROS Melodic or JetPack 3.3 for ROS Kinetic on TX1/TX2).
 
-Then, build and install [`jetson-inference`](https://github.com/dusty-nv/jetson-inference):
+Then, follow the installation steps below to install the needed components on your Jetson:
+
+### jetson-inference
+
+These ROS nodes use the DNN objects from the [`jetson-inference`](https://github.com/dusty-nv/jetson-inference) project (aka Hello AI World).  To build and install it, see [this page](https://github.com/dusty-nv/jetson-inference/blob/master/docs/building-repo-2.md) or run the commands below:
 
 ```bash
 $ cd ~
@@ -31,7 +43,7 @@ Before proceeding, it's worthwhile to test that `jetson-inference` is working pr
 
 Install the `ros-melodic-ros-base` package on your Jetson following these directions:
 
-* ROS Melodic (JetPack 4.x) - [ROS Install Instructions](http://wiki.ros.org/melodic/Installation/Ubuntu)
+* ROS Melodic (JetPack 4.2) - [ROS Install Instructions](http://wiki.ros.org/melodic/Installation/Ubuntu)
 * ROS Kinetic (JetPack 3.3) - [JetsonHacks Post](https://www.jetsonhacks.com/2018/04/27/robot-operating-system-ros-on-nvidia-jetson-tx-development-kits/)
 
 Depending on which version of ROS you're using, install some additional dependencies:
@@ -49,6 +61,8 @@ $ sudo apt-get install ros-kinetic-image-transport
 $ sudo apt-get install ros-kinetic-image-publisher
 $ sudo apt-get install ros-kinetic-vision-msgs
 ```
+
+#### Catkin Workspace
 
 Then, create a Catkin workspace (`~/catkin_ws`) using these steps:
 
@@ -76,7 +90,7 @@ Before proceeding, make sure that `roscore` is running first:
 $ roscore
 ```
 
-### imageNet
+### imageNet Node
 
 First, to stream some image data for the inferencing node to process, open another terminal and start an [`image_publisher`](http://wiki.ros.org/image_publisher), which loads a specified image from disk.  We tell it to load one of the test images that come with jetson-inference, but you can substitute your own images here as well:
 
@@ -98,7 +112,7 @@ In another terminal, you should be able to verify the [`vision_msgs/Classificati
 $ rostopic echo /imagenet/classification
 ```
 
-## detectNet
+### detectNet Node
 
 Kill the other nodes you launched above, and start publishing a new image with people in it for the [`detectnet`](src/node_detectnet.cpp) node to process:
 
