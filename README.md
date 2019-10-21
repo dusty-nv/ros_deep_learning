@@ -39,9 +39,9 @@ $ sudo make install
 Before proceeding, it's worthwhile to test that `jetson-inference` is working properly on your system by following this step of the Hello AI World tutorial:
 * [Classifying Images with ImageNet](https://github.com/dusty-nv/jetson-inference/blob/master/docs/imagenet-console-2.md)
 
-### ROS
+### ROS Melodic / Kinetic
 
-Install the `ros-melodic-ros-base` package on your Jetson following these directions:
+Install the `ros-melodic-ros-base` or `ros-kinetic-ros-base` package on your Jetson following these directions:
 
 * ROS Melodic (JetPack 4.2) - [ROS Install Instructions](http://wiki.ros.org/melodic/Installation/Ubuntu)
 * ROS Kinetic (JetPack 3.3) - [JetsonHacks Post](https://www.jetsonhacks.com/2018/04/27/robot-operating-system-ros-on-nvidia-jetson-tx-development-kits/)
