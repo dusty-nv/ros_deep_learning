@@ -36,20 +36,49 @@ include_directories(
 # enable c++11 (TensorRT requirement)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+# setup CUDA
+find_package(CUDA)
+message("-- CUDA version: ${CUDA_VERSION}")
+
+set(
+  CUDA_NVCC_FLAGS
+  ${CUDA_NVCC_FLAGS};
+  -O3
+  -gencode arch=compute_37,code=sm_37
+  -gencode arch=compute_53,code=sm_53
+  -gencode arch=compute_60,code=sm_60
+  -gencode arch=compute_61,code=sm_61
+  -gencode arch=compute_62,code=sm_62
+)
+
+if(CUDA_VERSION_MAJOR GREATER 9)
+  message("-- CUDA ${CUDA_VERSION_MAJOR} detected, enabling SM_72")
+
+  set(
+   CUDA_NVCC_FLAGS
+   ${CUDA_NVCC_FLAGS};
+   -gencode arch=compute_72,code=sm_72
+   )
+endif()
+
 
 # inference nodes
-add_executable(imagenet src/node_imagenet.cpp src/image_converter.cpp)
+#add_executable(imagenet src/node_imagenet.cpp src/cudaBGR.cu src/image_converter.cpp )
+cuda_add_executable(imagenet src/node_imagenet.cpp src/cudaBGR.cu src/image_converter.cpp )
 target_link_libraries(imagenet ${catkin_LIBRARIES} jetson-inference)
 
-add_executable(detectnet src/node_detectnet.cpp src/image_converter.cpp)
+#add_executable(detectnet src/node_detectnet.cpp src/cudaBGR.cu src/image_converter.cpp)
+cuda_add_executable(detectnet src/node_detectnet.cpp src/cudaBGR.cu src/image_converter.cpp)
 target_link_libraries(detectnet ${catkin_LIBRARIES} jetson-inference)
 
-add_executable(segnet src/node_segnet.cpp src/image_converter.cpp)
+#add_executable(segnet src/node_segnet.cpp src/cudaBGR.cu src/image_converter.cpp)
+cuda_add_executable(segnet src/node_segnet.cpp src/cudaBGR.cu src/image_converter.cpp)
 target_link_libraries(segnet ${catkin_LIBRARIES} jetson-inference)
 
 
 # the library we are going to compile (has all of the nodelets in it)
-add_library(ros_deep_learning_nodelets src/nodelet_imagenet.cpp src/image_converter.cpp)
+#add_library(ros_deep_learning_nodelets src/nodelet_imagenet.cpp src/cudaBGR.cu src/image_converter.cpp)
+cuda_add_library(ros_deep_learning_nodelets src/nodelet_imagenet.cpp src/cudaBGR.cu src/image_converter.cpp)
 target_link_libraries(ros_deep_learning_nodelets ${catkin_LIBRARIES} jetson-inference)
 
 
