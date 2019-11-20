@@ -56,29 +56,37 @@ bool imageConverter::Convert( const sensor_msgs::ImageConstPtr& input )
 {
 	ROS_INFO("converting %ux%u %s image", input->width, input->height, input->encoding.c_str());
 
-	// confirm bgr8 encoding
-	if( input->encoding != sensor_msgs::image_encodings::BGR8 )
-	{
-		ROS_ERROR("%ux%u image is in %s format, expected %s", input->width, input->height, input->encoding.c_str(), sensor_msgs::image_encodings::BGR8.c_str());
-		return false;
-	}
+	//All message convert to BGR8 format
+	sensor_msgs::ImagePtr msg_in ;
+	cv::Mat input_frame;
 
+
+	//Converting to cv::Mat bgr8 image
+        input_frame = cv_bridge::toCvShare(input, "bgr8")->image;
+	//Creating a new message with bgr8 encoding
+	msg_in = cv_bridge::CvImage(std_msgs::Header(),"bgr8",input_frame).toImageMsg();
+	
 	// confirm step size
-	const uint32_t input_stride = input->width * sizeof(uchar3);
+	const uint32_t input_stride = msg_in->width * sizeof(uchar3);
 
-	if( input->step != input_stride )
+
+	if( msg_in->step != input_stride )
 	{
-		ROS_ERROR("%ux%u image has step size of %u bytes, expected %u bytes", input->width, input->height, input->step, input_stride);
+		ROS_ERROR("%ux%u image has step size of %u bytes, expected %u bytes", msg_in->width, msg_in->height, msg_in->step, input_stride);
 		return false;
 	}
+
 
 	// assure memory allocation
-	if( !Resize(input->width, input->height) )
+	if( !Resize(msg_in->width, msg_in->height) )
 		return false;
-	
+
+
+
 	// copy input to shared memory
-	memcpy(mInputCPU, input->data.data(), input->width * input->height * sizeof(uchar3));	// note: 3 channels assumes bgr/rgb			
+	memcpy(mInputCPU, msg_in->data.data(), msg_in->width * msg_in->height * sizeof(uchar3)); // note: 3 channels assumes bgr/rgb return true;
 	
+
 	// convert to RGBA32f format
 	if( CUDA_FAILED(cudaBGR8ToRGBA32((uchar3*)mInputGPU, (float4*)mOutputGPU, mWidth, mHeight)) )
 	{
@@ -86,7 +94,11 @@ bool imageConverter::Convert( const sensor_msgs::ImageConstPtr& input )
 		return false;
 	}
 
+
 	return true;
+
+
+
 }
 
 
