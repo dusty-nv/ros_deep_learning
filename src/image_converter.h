@@ -25,6 +25,7 @@
 
 #include <sensor_msgs/Image.h>
 
+#include <cv_bridge/cv_bridge.h>
 
 /**
  * GPU image conversion
