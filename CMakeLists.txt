@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   vision_msgs
   std_msgs
+  cv_bridge
 )
 
 find_package(jetson-utils REQUIRED)
