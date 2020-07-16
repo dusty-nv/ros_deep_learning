@@ -25,8 +25,13 @@
 #include <jetson-utils/cudaRGB.h>
 #include <jetson-utils/cudaMappedMemory.h>
 
-#include <ros/ros.h>
+#ifdef ROS1
 #include <sensor_msgs/image_encodings.h>
+#elif ROS2
+#include <sensor_msgs/image_encodings.hpp>
+#endif
+
+
 
 
 cudaError_t cudaBGR8ToRGBA32( uchar3* input, float4* output, size_t width, size_t height )
@@ -75,7 +80,7 @@ bool imageConverter::Convert( const sensor_msgs::ImageConstPtr& input )
 	// confirm possible encodings
 	if( input->encoding != sensor_msgs::image_encodings::BGR8 && input->encoding != sensor_msgs::image_encodings::RGB8)
 	{
-		ROS_ERROR("%ux%u image is in %s format, expected %s or %s", input->width, input->height, input->encoding.c_str(), sensor_msgs::image_encodings::BGR8.c_str(), sensor_msgs::image_encodings::RGB8.c_str()); 
+		ROS_ERROR("%ux%u image is in %s format, expected %s or %s", input->width, input->height, input->encoding.c_str(), std::string(sensor_msgs::image_encodings::BGR8).c_str(), std::string(sensor_msgs::image_encodings::RGB8).c_str()); 
 		return false;
 	}
 
