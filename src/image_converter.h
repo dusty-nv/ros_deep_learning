@@ -23,7 +23,20 @@
 #ifndef __ROS_DEEP_LEARNING_IMAGE_CONVERTER_H_
 #define __ROS_DEEP_LEARNING_IMAGE_CONVERTER_H_
 
+#include <cuda_runtime.h>
+
 #include <sensor_msgs/Image.h>
+
+
+/**
+ * Complete functions missing from <jetson-utils/cudaRGB.h>
+ */
+
+cudaError_t cudaBGR8ToRGBA32( uchar3* input, float4* output, size_t width, size_t height );
+
+cudaError_t cudaRGBA32ToBGR8( float4* input, uchar3* output, size_t width, size_t height, const float2& pixelRange=make_float2(0,255) );
+
+cudaError_t cudaRGBA32ToBGRA8( float4* input, uchar4* output, size_t width, size_t height, const float2& pixelRange=make_float2(0,255) );
 
 
 /**
