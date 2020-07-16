@@ -29,6 +29,22 @@
 #include <sensor_msgs/image_encodings.h>
 
 
+cudaError_t cudaBGR8ToRGBA32( uchar3* input, float4* output, size_t width, size_t height )
+{
+	return cudaRGB8ToRGBA32(input, output, width, height, /*swapRedBlue=*/ true);
+}
+
+cudaError_t cudaRGBA32ToBGR8( float4* input, uchar3* output, size_t width, size_t height, const float2& pixelRange )
+{
+	return cudaRGBA32ToRGB8(input, output, width, height, /*swapRedBlue=*/ true, pixelRange);
+}
+
+cudaError_t cudaRGBA32ToBGRA8( float4* input, uchar4* output, size_t width, size_t height, const float2& pixelRange )
+{
+	return cudaRGBA32ToRGBA8(input, output, width, height, /*swapRedBlue=*/ true, pixelRange);
+}
+
+
 // constructor
 imageConverter::imageConverter()
 {
