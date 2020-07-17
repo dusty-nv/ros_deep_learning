@@ -60,14 +60,35 @@ std::shared_ptr< ros::Publisher<vision_msgs::Classification2D> > classify_pub = 
 
 vision_msgs::VisionInfo info_msg;
 
+#ifdef ROS2
+std::shared_ptr< ros::Publisher<vision_msgs::VisionInfo> > info_pub = NULL;
+int info_subscribers = 0;
 
+// callback triggered every N seconds by ROS2
+void info_callback()
+{
+	ROS_INFO("info_callback()");
+
+	const size_t subscription_count = info_pub->get_subscription_count();
+
+	if( subscription_count != info_subscribers )
+	{
+		if( subscription_count > info_subscribers )
+		{
+			ROS_INFO("new subscriber connection to vision_info topic, sending VisionInfo msg");
+			info_pub->publish(info_msg);
+		}
+
+		info_subscribers = subscription_count;
+	}
+}
+#elif ROS1
 // callback triggered when a new subscriber connected to vision_info topic
-#if 0
 void info_connect( const ros::SingleSubscriberPublisher& pub )
 {
 	ROS_INFO("new subscriber '%s' connected to vision_info topic '%s', sending VisionInfo msg", pub.getSubscriberName().c_str(), pub.getTopic().c_str());
 	pub.publish(info_msg);
-}
+}	
 #endif
 
 // callback triggered when recieved a new image on input topic
@@ -208,9 +229,12 @@ int main(int argc, char **argv)
 	std::string class_key = std::string("class_labels_") + std::to_string(model_hash);
 	setParameter(class_key, class_descriptions);
 	
-#if 0	
 	// populate the vision info msg
+#if ROS1		
 	std::string node_namespace = private_nh.getNamespace();
+#elif ROS2
+	std::string node_namespace = node->get_namespace();
+#endif
 	ROS_INFO("node namespace => %s", node_namespace.c_str());
 
 	info_msg.database_location = node_namespace + std::string("/") + class_key;
@@ -218,7 +242,6 @@ int main(int argc, char **argv)
 	info_msg.method 		  = net->GetModelPath();
 	
 	ROS_INFO("class labels => %s", info_msg.database_location.c_str());
-#endif
 
 	/*
 	 * create an image converter object
@@ -243,8 +266,11 @@ int main(int argc, char **argv)
 #endif
 
 	// the vision info topic only publishes upon a new connection
-#if 0
+#ifdef ROS1
 	ros::Publisher info_pub = private_nh.advertise<vision_msgs::VisionInfo>("vision_info", 1, (ros::SubscriberStatusCallback)info_connect);
+#elif ROS2
+	info_pub = node->create_publisher<vision_msgs::VisionInfo>("vision_info", 1);
+	node->create_wall_timer(std::chrono::milliseconds(500), info_callback);
 #endif
 
 	/*
