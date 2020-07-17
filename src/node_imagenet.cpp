@@ -20,30 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef ROS1
-#include <ros/ros.h>
-#include <sensor_msgs/Image.h>
-#include <vision_msgs/Classification2D.h>
-#include <vision_msgs/VisionInfo.h>
-#elif ROS2
-#include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/image.hpp>
-#include <vision_msgs/msg/classification2_d.hpp>
-#include <vision_msgs/msg/vision_info.hpp>
-
-namespace vision_msgs
-{
-	typedef msg::Classification2D Classification2D;
-	typedef msg::ObjectHypothesis ObjectHypothesis;
-	typedef msg::VisionInfo VisionInfo;
-}
-
-#endif
+#include "ros_compat.h"
+#include "image_converter.h"
 
 #include <jetson-inference/imageNet.h>
 #include <jetson-utils/cudaMappedMemory.h>
-
-#include "image_converter.h"
 
 #include <unordered_map>
 
@@ -55,19 +36,21 @@ imageConverter* cvt = NULL;
 #ifdef ROS1
 ros::Publisher* classify_pub = NULL;
 #elif ROS2
-std::shared_ptr< ros::Publisher<vision_msgs::Classification2D> > classify_pub = NULL;
+//std::shared_ptr< ros::Publisher<vision_msgs::Classification2D> > classify_pub = NULL;
+Publisher<vision_msgs::Classification2D> classify_pub = NULL;
 #endif
 
 vision_msgs::VisionInfo info_msg;
 
 #ifdef ROS2
-std::shared_ptr< ros::Publisher<vision_msgs::VisionInfo> > info_pub = NULL;
+//std::shared_ptr< ros::Publisher<vision_msgs::VisionInfo> > info_pub = NULL;
+Publisher<vision_msgs::VisionInfo> info_pub = NULL;
 int info_subscribers = 0;
 
 // callback triggered every N seconds by ROS2
 void info_callback()
 {
-	ROS_INFO("info_callback()");
+	//ROS_INFO("info_callback()");
 
 	const size_t subscription_count = info_pub->get_subscription_count();
 
@@ -134,27 +117,11 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 // node main loop
 int main(int argc, char **argv)
 {
-#ifdef ROS1
-	ros::init(argc, argv, "imagenet");
- 
-	ros::NodeHandle nh;
-	ros::NodeHandle private_nh("~");
+	/*
+	 * create node instance
+	 */
+	CREATE_NODE("imagenet");
 
-	#define getParameter(name, val)		private_nh.getParam(name, val)
-	#define getParameterOr(name, val, alt)	private_nh.param<std::string>(name, val, alt)
-	#define setParameter(name, val)		private_nh.setParam(name, val)
-#elif ROS2
-	rclcpp::init(argc, argv);
-
-	rclcpp::NodeOptions node_options;
-	node_options.allow_undeclared_parameters(true);
-
-	auto node = rclcpp::Node::make_shared("imagenet"/*, "~"*/,  node_options);
-
-	#define getParameter(name, val)		node->get_parameter(name, val)
-	#define getParameterOr(name, val, alt)	node->get_parameter_or(name, val, std::string(alt))	// TODO set undefined params in param server
-	#define setParameter(name, val)		node->set_parameter(rclcpp::Parameter(name, val))
-#endif
 
 	/*
 	 * retrieve parameters
@@ -167,12 +134,12 @@ int main(int argc, char **argv)
 	bool use_model_name = false;
 
 	// determine if custom model paths were specified
-	if( !getParameter("prototxt_path", prototxt_path) ||
-	    !getParameter("model_path", model_path) ||
-	    !getParameter("class_labels_path", class_labels_path) )
+	if( !GET_PARAMETER("prototxt_path", prototxt_path) ||
+	    !GET_PARAMETER("model_path", model_path) ||
+	    !GET_PARAMETER("class_labels_path", class_labels_path) )
 	{
 		// without custom model, use one of the built-in pretrained models
-		getParameterOr("model_name", model_name, "googlenet");
+		GET_PARAMETER_OR("model_name", model_name, "googlenet");
 		use_model_name = true;
 	}
 
@@ -227,14 +194,10 @@ int main(int argc, char **argv)
 
 	// create the key on the param server
 	std::string class_key = std::string("class_labels_") + std::to_string(model_hash);
-	setParameter(class_key, class_descriptions);
+	SET_PARAMETER(class_key, class_descriptions);
 	
 	// populate the vision info msg
-#if ROS1		
-	std::string node_namespace = private_nh.getNamespace();
-#elif ROS2
-	std::string node_namespace = node->get_namespace();
-#endif
+	const std::string node_namespace = GET_NAMESPACE();
 	ROS_INFO("node namespace => %s", node_namespace.c_str());
 
 	info_msg.database_location = node_namespace + std::string("/") + class_key;
@@ -262,36 +225,33 @@ int main(int argc, char **argv)
 	ros::Publisher pub = private_nh.advertise<vision_msgs::Classification2D>("classification", 5);
 	classify_pub = &pub; // we need to publish from the subscriber callback
 #elif ROS2
-	classify_pub = node->create_publisher<vision_msgs::Classification2D>("classification", 5);
+	classify_pub = CREATE_PUBLISHER(vision_msgs::Classification2D, "classification", 5);
 #endif
 
 	// the vision info topic only publishes upon a new connection
 #ifdef ROS1
 	ros::Publisher info_pub = private_nh.advertise<vision_msgs::VisionInfo>("vision_info", 1, (ros::SubscriberStatusCallback)info_connect);
 #elif ROS2
-	info_pub = node->create_publisher<vision_msgs::VisionInfo>("vision_info", 1);
-	node->create_wall_timer(std::chrono::milliseconds(500), info_callback);
+	info_pub = CREATE_PUBLISHER(vision_msgs::VisionInfo, "vision_info", 1);
+	rclcpp::TimerBase::SharedPtr info_timer = node->create_wall_timer(std::chrono::milliseconds(500), info_callback);
 #endif
 
 	/*
 	 * subscribe to image topic
 	 */
-#ifdef ROS1
+	auto img_sub = CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
+
+/*#ifdef ROS1
 	ros::Subscriber img_sub = private_nh.subscribe("image_in", 5, img_callback);
 #elif ROS2
 	auto img_sub = node->create_subscription<sensor_msgs::Image>("image_in", 5, img_callback);
-#endif
+#endif*/
 
 	/*
 	 * wait for messages
 	 */
 	ROS_INFO("imagenet node initialized, waiting for messages");
-
-#ifdef ROS1
-	ros::spin();
-#elif ROS2
-	rclcpp::spin(node);
-#endif
+	ROS_SPIN();
 
 	return 0;
 }
