@@ -14,7 +14,7 @@ find_package(catkin QUIET)
 if( catkin_FOUND )
 	message("detected ROS1 (catkin_make)")
 
-     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/package.ros1.xml DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/package.xml)
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/package.ros1.xml ${CMAKE_CURRENT_SOURCE_DIR}/package.xml COPYONLY)
 
 	find_package(catkin REQUIRED COMPONENTS
 		image_transport
@@ -39,7 +39,7 @@ else()
 	if( ament_cmake_FOUND )
 		message("detected ROS2 (ament_cmake)")
 
-          file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/package.ros2.xml DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/package.xml)
+		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/package.ros2.xml ${CMAKE_CURRENT_SOURCE_DIR}/package.xml COPYONLY)
 
 		find_package(rclcpp REQUIRED)
 		find_package(std_msgs REQUIRED)
@@ -62,6 +62,7 @@ target_link_libraries(imagenet ${catkin_LIBRARIES} jetson-inference)
 
 if( ament_cmake_FOUND )
 	ament_target_dependencies(imagenet rclcpp std_msgs sensor_msgs vision_msgs)
+	install(TARGETS imagenet DESTINATION lib/${PROJECT_NAME})
 endif()
 
 

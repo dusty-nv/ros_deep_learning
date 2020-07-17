@@ -24,37 +24,14 @@
 #define __ROS_DEEP_LEARNING_IMAGE_CONVERTER_H_
 
 #include <cuda_runtime.h>
-
-#ifdef ROS1
-#include <ros/ros.h>
-#include <sensor_msgs/Image.h>
-#elif ROS2
-#include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/image.hpp>
-
-namespace sensor_msgs
-{
-	typedef msg::Image Image;
-	typedef msg::Image::SharedPtr ImagePtr;
-	typedef msg::Image::ConstSharedPtr ImageConstPtr;
-}
-
-namespace ros = rclcpp;
-
-#define ROS_INFO(...)	RCUTILS_LOG_INFO_ONCE(__VA_ARGS__)
-#define ROS_ERROR(...)   RCUTILS_LOG_ERROR_ONCE(__VA_ARGS__)
-
-#endif
+#include "ros_compat.h"
 
 
 /**
- * Complete functions missing from <jetson-utils/cudaRGB.h>
+ * Colorspace conversion functions
  */
-
 cudaError_t cudaBGR8ToRGBA32( uchar3* input, float4* output, size_t width, size_t height );
-
 cudaError_t cudaRGBA32ToBGR8( float4* input, uchar3* output, size_t width, size_t height, const float2& pixelRange=make_float2(0,255) );
-
 cudaError_t cudaRGBA32ToBGRA8( float4* input, uchar4* output, size_t width, size_t height, const float2& pixelRange=make_float2(0,255) );
 
 
