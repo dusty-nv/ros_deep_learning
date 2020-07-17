@@ -14,7 +14,7 @@ find_package(catkin QUIET)
 if( catkin_FOUND )
 	message("detected ROS1 (catkin_make)")
 
-     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/package.ros1.xml DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/package.xml)
+     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/package.ros1.xml DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/package.xml)
 
 	find_package(catkin REQUIRED COMPONENTS
 		image_transport
@@ -39,7 +39,7 @@ else()
 	if( ament_cmake_FOUND )
 		message("detected ROS2 (ament_cmake)")
 
-          file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/package.ros2.xml DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/package.xml)
+          file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/package.ros2.xml DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/package.xml)
 
 		find_package(rclcpp REQUIRED)
 		find_package(std_msgs REQUIRED)
