@@ -33,48 +33,20 @@
 imageNet* 	 net = NULL;
 imageConverter* cvt = NULL;
 
-#ifdef ROS1
-ros::Publisher* classify_pub = NULL;
-#elif ROS2
-//std::shared_ptr< ros::Publisher<vision_msgs::Classification2D> > classify_pub = NULL;
 Publisher<vision_msgs::Classification2D> classify_pub = NULL;
-#endif
+Publisher<vision_msgs::VisionInfo> info_pub = NULL;
 
 vision_msgs::VisionInfo info_msg;
 
-#ifdef ROS2
-//std::shared_ptr< ros::Publisher<vision_msgs::VisionInfo> > info_pub = NULL;
-Publisher<vision_msgs::VisionInfo> info_pub = NULL;
-int info_subscribers = 0;
 
-// callback triggered every N seconds by ROS2
+// triggered when a new subscriber connected
 void info_callback()
 {
-	//ROS_INFO("info_callback()");
-
-	const size_t subscription_count = info_pub->get_subscription_count();
-
-	if( subscription_count != info_subscribers )
-	{
-		if( subscription_count > info_subscribers )
-		{
-			ROS_INFO("new subscriber connection to vision_info topic, sending VisionInfo msg");
-			info_pub->publish(info_msg);
-		}
-
-		info_subscribers = subscription_count;
-	}
-}
-#elif ROS1
-// callback triggered when a new subscriber connected to vision_info topic
-void info_connect( const ros::SingleSubscriberPublisher& pub )
-{
-	ROS_INFO("new subscriber '%s' connected to vision_info topic '%s', sending VisionInfo msg", pub.getSubscriberName().c_str(), pub.getTopic().c_str());
-	pub.publish(info_msg);
+	ROS_INFO("new subscriber connected to vision_info topic, sending VisionInfo msg");
+	info_pub->publish(info_msg);
 }	
-#endif
 
-// callback triggered when recieved a new image on input topic
+// triggered when recieved a new image on input topic
 void img_callback( const sensor_msgs::ImageConstPtr input )
 {
 	// convert the image to reside on GPU
@@ -221,31 +193,15 @@ int main(int argc, char **argv)
 	/*
 	 * advertise publisher topics
 	 */
-#ifdef ROS1
-	ros::Publisher pub = private_nh.advertise<vision_msgs::Classification2D>("classification", 5);
-	classify_pub = &pub; // we need to publish from the subscriber callback
-#elif ROS2
-	classify_pub = CREATE_PUBLISHER(vision_msgs::Classification2D, "classification", 5);
-#endif
+	CREATE_PUBLISHER(vision_msgs::Classification2D, "classification", 5, classify_pub);
+	CREATE_PUBLISHER_STATUS(vision_msgs::VisionInfo, "vision_info", 1, info_callback, info_pub);
 
-	// the vision info topic only publishes upon a new connection
-#ifdef ROS1
-	ros::Publisher info_pub = private_nh.advertise<vision_msgs::VisionInfo>("vision_info", 1, (ros::SubscriberStatusCallback)info_connect);
-#elif ROS2
-	info_pub = CREATE_PUBLISHER(vision_msgs::VisionInfo, "vision_info", 1);
-	rclcpp::TimerBase::SharedPtr info_timer = node->create_wall_timer(std::chrono::milliseconds(500), info_callback);
-#endif
 
 	/*
 	 * subscribe to image topic
 	 */
 	auto img_sub = CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
 
-/*#ifdef ROS1
-	ros::Subscriber img_sub = private_nh.subscribe("image_in", 5, img_callback);
-#elif ROS2
-	auto img_sub = node->create_subscription<sensor_msgs::Image>("image_in", 5, img_callback);
-#endif*/
 
 	/*
 	 * wait for messages

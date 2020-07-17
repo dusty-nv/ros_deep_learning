@@ -100,16 +100,16 @@ bool imageConverter::Convert( const sensor_msgs::ImageConstPtr& input )
 	// copy input to shared memory
 	memcpy(mInputCPU, input->data.data(), input->width * input->height * sizeof(uchar3));	// note: 3 channels assumes bgr/rgb			
 	
-	if( input->encoding == sensor_msgs::image_encodings::BGR8 ){
-		// convert to RGBA32f format
+	if( input->encoding == sensor_msgs::image_encodings::BGR8 )
+	{
 		if( CUDA_FAILED(cudaBGR8ToRGBA32((uchar3*)mInputGPU, (float4*)mOutputGPU, mWidth, mHeight)) )
 		{
 			ROS_ERROR("failed to convert %ux%u image with CUDA", mWidth, mHeight);
 			return false;
 		}
 	}
-	else if(input->encoding == sensor_msgs::image_encodings::RGB8){
-		// convert to RGBA32f format
+	else if(input->encoding == sensor_msgs::image_encodings::RGB8)
+	{
 		if( CUDA_FAILED(cudaRGB8ToRGBA32((uchar3*)mInputGPU, (float4*)mOutputGPU, mWidth, mHeight)) )
 		{
 			ROS_ERROR("failed to convert %ux%u image with CUDA", mWidth, mHeight);
