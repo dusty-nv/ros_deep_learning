@@ -79,6 +79,9 @@ void img_callback( const sensor_msgs::ImageConstPtr& input )
 		obj.score = confidence;
 
 		msg.results.push_back(obj);	// TODO optionally add source image to msg
+
+		// populate timestamp in header field
+		msg.header.stamp = ros::Time::now();
 	
 		// publish the classification message
 		classify_pub->publish(msg);
