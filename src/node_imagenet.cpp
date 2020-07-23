@@ -75,6 +75,9 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 
 		msg.results.push_back(obj);	// TODO optionally add source image to msg
 	
+		// populate timestamp in header field
+		msg.header.stamp = ROS_TIME_NOW();
+
 		// publish the classification message
 		classify_pub->publish(msg);
 	}
@@ -111,7 +114,7 @@ int main(int argc, char **argv)
 	    !GET_PARAMETER("class_labels_path", class_labels_path) )
 	{
 		// without custom model, use one of the built-in pretrained models
-		GET_PARAMETER_OR("model_name", model_name, "googlenet");
+		GET_PARAMETER_OR("model_name", model_name, std::string("googlenet"));
 		use_model_name = true;
 	}
 

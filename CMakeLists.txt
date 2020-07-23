@@ -55,34 +55,33 @@ else()
 	endif()
 endif()
 
+# sources shared across nodes
+set(common_src src/image_converter.cpp src/ros_compat.cpp)
 
 # inference nodes
-add_executable(imagenet src/node_imagenet.cpp src/image_converter.cpp)
+add_executable(imagenet src/node_imagenet.cpp ${common_src})
 target_link_libraries(imagenet ${catkin_LIBRARIES} jetson-inference)
 
-if( ament_cmake_FOUND )
-	ament_target_dependencies(imagenet rclcpp std_msgs sensor_msgs vision_msgs)
-	install(TARGETS imagenet DESTINATION lib/${PROJECT_NAME})
-endif()
-
-
-#add_executable(detectnet src/node_detectnet.cpp src/image_converter.cpp)
-#target_link_libraries(detectnet ${catkin_LIBRARIES} jetson-inference)
+add_executable(detectnet src/node_detectnet.cpp ${common_src})
+target_link_libraries(detectnet ${catkin_LIBRARIES} jetson-inference)
 
 #add_executable(segnet src/node_segnet.cpp src/image_converter.cpp)
 #target_link_libraries(segnet ${catkin_LIBRARIES} jetson-inference)
 
+if( catkin_FOUND )
+	add_library(ros_deep_learning_nodelets src/nodelet_imagenet.cpp src/image_converter.cpp)
+	target_link_libraries(ros_deep_learning_nodelets ${catkin_LIBRARIES} jetson-inference)
 
-# the library we are going to compile (has all of the nodelets in it)
-#add_library(ros_deep_learning_nodelets src/nodelet_imagenet.cpp src/image_converter.cpp)
-#target_link_libraries(ros_deep_learning_nodelets ${catkin_LIBRARIES} jetson-inference)
+	if(catkin_EXPORTED_LIBRARIES)
+		add_dependencies(ros_deep_learning_nodelets ${catkin_EXPORTED_LIBRARIES})
+	endif()
+else()
+	ament_target_dependencies(imagenet rclcpp std_msgs sensor_msgs vision_msgs)
+	install(TARGETS imagenet DESTINATION lib/${PROJECT_NAME})
 
+	ament_target_dependencies(detectnet rclcpp std_msgs sensor_msgs vision_msgs)
+	install(TARGETS detectnet DESTINATION lib/${PROJECT_NAME})
 
-#if(catkin_EXPORTED_LIBRARIES)
-#    add_dependencies(ros_deep_learning_nodelets ${catkin_EXPORTED_LIBRARIES})
-#endif()
-
-if( ament_cmake_FOUND )
 	ament_package()
 endif()
 

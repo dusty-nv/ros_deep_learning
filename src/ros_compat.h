@@ -28,6 +28,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <vision_msgs/Classification2D.h>
+#include <vision_msgs/Detection2DArray.h>
 #include <vision_msgs/VisionInfo.h>
 
 #define CREATE_NODE(name)				\
@@ -45,9 +46,10 @@ using Publisher = ros::Publisher*;
 
 #define GET_NAMESPACE()										private_nh.getNamespace()
 #define GET_PARAMETER(name, val)								private_nh.getParam(name, val)
-#define GET_PARAMETER_OR(name, val, alt)						private_nh.param<std::string>(name, val, alt)
+#define GET_PARAMETER_OR(name, val, alt)						private_nh.param(name, val, alt)
 #define SET_PARAMETER(name, val)								private_nh.setParam(name, val)
 
+#define ROS_TIME_NOW()										ros::Time::now()
 #define ROS_SPIN()											ros::spin()
 
 #elif ROS2
@@ -55,13 +57,17 @@ using Publisher = ros::Publisher*;
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <vision_msgs/msg/classification2_d.hpp>
+#include <vision_msgs/msg/detection2_d_array.hpp>
 #include <vision_msgs/msg/vision_info.hpp>
 
 namespace vision_msgs
 {
 	typedef msg::Classification2D Classification2D;
+	typedef msg::Detection2D		Detection2D;
+	typedef msg::Detection2DArray Detection2DArray;
 	typedef msg::ObjectHypothesis ObjectHypothesis;
-	typedef msg::VisionInfo VisionInfo;
+	typedef msg::ObjectHypothesisWithPose ObjectHypothesisWithPose;
+	typedef msg::VisionInfo 		VisionInfo;
 }
 
 namespace sensor_msgs
@@ -80,7 +86,8 @@ namespace ros = rclcpp;
 		rclcpp::init(argc, argv);					\
 		rclcpp::NodeOptions node_options;				\
 		node_options.allow_undeclared_parameters(true); 	\
-		auto node = rclcpp::Node::make_shared(name, "/" name,  node_options);
+		auto node = rclcpp::Node::make_shared(name, "/" name,  node_options); \
+		__global_clock_ = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
 
 template<class MessageType>
 using Publisher = std::shared_ptr<ros::Publisher<MessageType>>;
@@ -93,10 +100,14 @@ using Publisher = std::shared_ptr<ros::Publisher<MessageType>>;
 
 #define GET_NAMESPACE()										node->get_namespace()
 #define GET_PARAMETER(name, val)								node->get_parameter(name, val)
-#define GET_PARAMETER_OR(name, val, alt)						node->get_parameter_or(name, val, std::string(alt))	// TODO set undefined params in param server
+#define GET_PARAMETER_OR(name, val, alt)						node->get_parameter_or(name, val, alt)	// TODO set undefined params in param server
 #define SET_PARAMETER(name, val)								node->set_parameter(rclcpp::Parameter(name, val))
 
+extern rclcpp::Clock::SharedPtr __global_clock_;
+
+#define ROS_TIME_NOW()										__global_clock_->now()
 #define ROS_SPIN()											rclcpp::spin(node)
+
 
 #endif
 #endif
