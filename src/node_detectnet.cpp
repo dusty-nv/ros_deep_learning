@@ -85,8 +85,8 @@ void img_callback( const sensor_msgs::ImageConstPtr& input )
 		{
 			detectNet::Detection* det = detections + n;
 
-			printf("object %i class #%u (%s)  confidence=%f\n", n, det->ClassID, net->GetClassDesc(det->ClassID), det->Confidence);
-			printf("object %i bounding box (%f, %f)  (%f, %f)  w=%f  h=%f\n", n, det->Left, det->Top, det->Right, det->Bottom, det->Width(), det->Height()); 
+			ROS_INFO("object %i class #%u (%s)  confidence=%f\n", n, det->ClassID, net->GetClassDesc(det->ClassID), det->Confidence);
+			ROS_INFO("object %i bounding box (%f, %f)  (%f, %f)  w=%f  h=%f\n", n, det->Left, det->Top, det->Right, det->Bottom, det->Width(), det->Height());
 			
 			// create a detection sub-message
 			vision_msgs::Detection2D detMsg;
@@ -111,6 +111,9 @@ void img_callback( const sensor_msgs::ImageConstPtr& input )
 			detMsg.results.push_back(hyp);
 			msg.detections.push_back(detMsg);
 		}
+
+		// populate timestamp filed in header
+		msg.header.stamp = ros::Time::now();
 
 		// publish the detection message
 		detection_pub->publish(msg);

@@ -78,6 +78,7 @@ bool publish_overlay( uint32_t width, uint32_t height )
 		return false;
 
 	// publish the message
+	msg.header.stamp = ros::Time::now();
 	overlay_pub->publish(msg);
 }
 
@@ -100,6 +101,7 @@ bool publish_mask_color( uint32_t width, uint32_t height )
 		return false;
 
 	// publish the message
+	msg.header.stamp = ros::Time::now();
 	mask_color_pub->publish(msg);
 }
 
@@ -122,6 +124,7 @@ bool publish_mask_class( uint32_t width, uint32_t height )
 		return false;
 
 	// publish the message
+	msg.header.stamp = ros::Time::now();
 	mask_class_pub->publish(msg);
 }
 
