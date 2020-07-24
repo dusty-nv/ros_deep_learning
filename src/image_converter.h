@@ -23,16 +23,10 @@
 #ifndef __ROS_DEEP_LEARNING_IMAGE_CONVERTER_H_
 #define __ROS_DEEP_LEARNING_IMAGE_CONVERTER_H_
 
-#include <cuda_runtime.h>
+#include <jetson-utils/cudaUtility.h>
+#include <jetson-utils/imageFormat.h>
+
 #include "ros_compat.h"
-
-
-/**
- * Colorspace conversion functions
- */
-cudaError_t cudaBGR8ToRGBA32( uchar3* input, float4* output, size_t width, size_t height );
-cudaError_t cudaRGBA32ToBGR8( float4* input, uchar3* output, size_t width, size_t height, const float2& pixelRange=make_float2(0,255) );
-cudaError_t cudaRGBA32ToBGRA8( float4* input, uchar4* output, size_t width, size_t height, const float2& pixelRange=make_float2(0,255) );
 
 
 /**
@@ -41,6 +35,21 @@ cudaError_t cudaRGBA32ToBGRA8( float4* input, uchar4* output, size_t width, size
 class imageConverter
 {
 public:
+	/**
+	 * Output image pixel type
+	 */
+	typedef uchar3 PixelType;
+
+	/**
+	 * Image format used for internal CUDA processing
+	 */
+	static const imageFormat InternalFormat = IMAGE_RGB8;
+
+	/**
+	 * Image format used for outputting ROS image messages
+	 */
+	static const imageFormat ROSOutputFormat = IMAGE_BGR8;
+
 	/**
 	 * Constructor
 	 */
@@ -59,12 +68,12 @@ public:
 	/**
 	 * Convert to ROS sensor_msgs::Image message
 	 */
-	bool Convert( sensor_msgs::Image& msg_out, const std::string& encoding );
+	bool Convert( sensor_msgs::Image& msg_out, imageFormat outputFormat );
 
 	/**
 	 * Resize the memory (if necessary)
 	 */
-	bool Resize( uint32_t width, uint32_t height );
+	bool Resize( uint32_t width, uint32_t height, imageFormat inputFormat );
 
 	/**
 	 * Retrieve the converted image width
@@ -77,26 +86,22 @@ public:
 	inline uint32_t GetHeight() const		{ return mHeight; }
 
 	/**
-	 * Retrieve the size of the converted image (in bytes)
-	 */
-	inline size_t GetSize() const			{ return mSize; }
-
-	/**
 	 * Retrieve the GPU pointer of the converted image
 	 */
-	inline float* ImageGPU() const		{ return mOutputGPU; }
+	inline PixelType* ImageGPU() const		{ return mOutputGPU; }
 
 private:
 
 	uint32_t mWidth;
-	uint32_t mHeight;
-	size_t   mSize;
+	uint32_t mHeight;	
+	size_t   mSizeInput;
+	size_t   mSizeOutput;
 
-	uint8_t* mInputCPU;
-	uint8_t* mInputGPU;
+	void* mInputCPU;
+	void* mInputGPU;
 
-	float*   mOutputCPU;
-	float*   mOutputGPU;
+	PixelType* mOutputCPU;
+	PixelType* mOutputGPU;
 };
 
 #endif

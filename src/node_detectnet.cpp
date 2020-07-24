@@ -59,17 +59,20 @@ bool publish_overlay( detectNet::Detection* detections, int numDetections )
 	const uint32_t height = input_cvt->GetHeight();
 
 	// assure correct image size
-	if( !overlay_cvt->Resize(width, height) )
+	if( !overlay_cvt->Resize(width, height, imageConverter::ROSOutputFormat) )
 		return false;
 
 	// generate the overlay
-	if( !net->Overlay((void*)input_cvt->ImageGPU(), (void*)overlay_cvt->ImageGPU(), width, height, IMAGE_RGBA32F, detections, numDetections, overlay_flags) )
+	if( !net->Overlay(input_cvt->ImageGPU(), overlay_cvt->ImageGPU(), width, height, 
+				   imageConverter::InternalFormat, detections, numDetections, overlay_flags) )
+	{
 		return false;
+	}
 
 	// populate the message
 	sensor_msgs::Image msg;
 
-	if( !overlay_cvt->Convert(msg, sensor_msgs::image_encodings::BGR8) )
+	if( !overlay_cvt->Convert(msg, imageConverter::ROSOutputFormat) )
 		return false;
 
 	// populate timestamp in header field
