@@ -60,7 +60,7 @@ void info_callback()
 bool publish_overlay( uint32_t width, uint32_t height )
 {
 	// assure correct image size
-	if( !overlay_cvt->Resize(width, height) )
+	if( !overlay_cvt->Resize(width, height, imageConverter::ROSOutputFormat) )
 		return false;
 
 	// generate the overlay
@@ -70,7 +70,7 @@ bool publish_overlay( uint32_t width, uint32_t height )
 	// populate the message
 	sensor_msgs::Image msg;
 
-	if( !overlay_cvt->Convert(msg, sensor_msgs::image_encodings::BGR8) )
+	if( !overlay_cvt->Convert(msg, imageConverter::ROSOutputFormat) )
 		return false;
 
 	// populate timestamp in header field
@@ -85,7 +85,7 @@ bool publish_overlay( uint32_t width, uint32_t height )
 bool publish_mask_color( uint32_t width, uint32_t height )
 {
 	// assure correct image size
-	if( !mask_color_cvt->Resize(width, height) )
+	if( !mask_color_cvt->Resize(width, height, imageConverter::ROSOutputFormat) )
 		return false;
 
 	// generate the overlay
@@ -95,7 +95,7 @@ bool publish_mask_color( uint32_t width, uint32_t height )
 	// populate the message
 	sensor_msgs::Image msg;
 
-	if( !mask_color_cvt->Convert(msg, sensor_msgs::image_encodings::BGR8) )
+	if( !mask_color_cvt->Convert(msg, imageConverter::ROSOutputFormat) )
 		return false;
 
 	// populate timestamp in header field
@@ -110,7 +110,7 @@ bool publish_mask_color( uint32_t width, uint32_t height )
 bool publish_mask_class( uint32_t width, uint32_t height )
 {
 	// assure correct image size
-	if( !mask_class_cvt->Resize(width, height) )
+	if( !mask_class_cvt->Resize(width, height, IMAGE_GRAY8) )
 		return false;
 
 	// generate the overlay
@@ -120,7 +120,7 @@ bool publish_mask_class( uint32_t width, uint32_t height )
 	// populate the message
 	sensor_msgs::Image msg;
 
-	if( !mask_class_cvt->Convert(msg, sensor_msgs::image_encodings::MONO8) )
+	if( !mask_class_cvt->Convert(msg, IMAGE_GRAY8) )
 		return false;
 
 	// populate timestamp in header field
