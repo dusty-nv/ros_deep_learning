@@ -30,10 +30,14 @@
 
 
 // globals
-detectNet* 	 net = NULL;
-imageConverter* cvt = NULL;
+detectNet* net = NULL;
+uint32_t overlay_flags = detectNet::OVERLAY_NONE;
+
+imageConverter* input_cvt   = NULL;
+imageConverter* overlay_cvt = NULL;
 
 Publisher<vision_msgs::Detection2DArray> detection_pub = NULL;
+Publisher<sensor_msgs::Image> overlay_pub = NULL;
 Publisher<vision_msgs::VisionInfo> info_pub = NULL;
 
 vision_msgs::VisionInfo info_msg;
@@ -47,11 +51,41 @@ void info_callback()
 }
 
 
+// publish overlay image
+bool publish_overlay( detectNet::Detection* detections, int numDetections )
+{
+	// get the image dimensions
+	const uint32_t width  = input_cvt->GetWidth();
+	const uint32_t height = input_cvt->GetHeight();
+
+	// assure correct image size
+	if( !overlay_cvt->Resize(width, height) )
+		return false;
+
+	// generate the overlay
+	if( !net->Overlay((void*)input_cvt->ImageGPU(), (void*)overlay_cvt->ImageGPU(), width, height, IMAGE_RGBA32F, detections, numDetections, overlay_flags) )
+		return false;
+
+	// populate the message
+	sensor_msgs::Image msg;
+
+	if( !overlay_cvt->Convert(msg, sensor_msgs::image_encodings::BGR8) )
+		return false;
+
+	// populate timestamp in header field
+	msg.header.stamp = ROS_TIME_NOW();
+
+	// publish the message	
+	overlay_pub->publish(msg);
+	ROS_INFO("publishing %ux%u overlay image", width, height);
+}
+
+
 // input image subscriber callback
 void img_callback( const sensor_msgs::ImageConstPtr input )
 {
 	// convert the image to reside on GPU
-	if( !cvt || !cvt->Convert(input) )
+	if( !input_cvt || !input_cvt->Convert(input) )
 	{
 		ROS_INFO("failed to convert %ux%u %s image", input->width, input->height, input->encoding.c_str());
 		return;	
@@ -60,7 +94,7 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 	// classify the image
 	detectNet::Detection* detections = NULL;
 
-	const int numDetections = net->Detect(cvt->ImageGPU(), cvt->GetWidth(), cvt->GetHeight(), &detections, detectNet::OVERLAY_NONE);
+	const int numDetections = net->Detect(input_cvt->ImageGPU(), input_cvt->GetWidth(), input_cvt->GetHeight(), &detections, detectNet::OVERLAY_NONE);
 
 	// verify success	
 	if( numDetections < 0 )
@@ -114,6 +148,10 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 		// publish the detection message
 		detection_pub->publish(msg);
 	}
+
+	// generate the overlay (if there are subscribers)
+	if( NUM_SUBSCRIBERS(overlay_pub) > 0 )
+		publish_overlay(detections, numDetections);
 }
 
 
@@ -136,8 +174,7 @@ int main(int argc, char **argv)
 	bool use_model_name = false;
 
 	// determine if custom model paths were specified
-	if( !GET_PARAMETER("prototxt_path", prototxt_path) ||
-	    !GET_PARAMETER("model_path", model_path) )
+	if( !GET_PARAMETER("prototxt_path", prototxt_path) && !GET_PARAMETER("model_path", model_path) )
 	{
 		// without custom model, use one of the built-in pretrained models
 		GET_PARAMETER_OR("model_name", model_name, std::string("ssd-mobilenet-v2"));
@@ -146,10 +183,15 @@ int main(int argc, char **argv)
 
 	// set mean pixel and threshold defaults
 	float mean_pixel = 0.0f;
-	float threshold  = 0.5f;
+	float threshold  = DETECTNET_DEFAULT_THRESHOLD;
 	
 	GET_PARAMETER_OR("mean_pixel_value", mean_pixel, mean_pixel); //private_nh.param<float>("mean_pixel_value", mean_pixel, mean_pixel);
 	GET_PARAMETER_OR("threshold", threshold, threshold);
+
+	// parse overlay flags
+	std::string overlay_str = "box,labels,conf";
+	GET_PARAMETER_OR("overlay_flags", overlay_str, overlay_str);
+	overlay_flags = detectNet::OverlayFlagsFromStr(overlay_str.c_str());
 
 
 	/*
@@ -171,11 +213,20 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		// get input/output layer names
+		std::string input_blob = DETECTNET_DEFAULT_INPUT;
+		std::string output_cvg = DETECTNET_DEFAULT_COVERAGE;
+		std::string output_box = DETECTNET_DEFAULT_BBOX;
+
+		GET_PARAMETER_OR("input_blob", input_blob, input_blob);
+		GET_PARAMETER_OR("output_cvg", output_cvg, output_cvg);
+		GET_PARAMETER_OR("output_bbox", output_box, output_box);
+
 		// get the class labels path (optional)
 		GET_PARAMETER("class_labels_path", class_labels_path);
 
 		// create network using custom model paths
-		net = detectNet::Create(prototxt_path.c_str(), model_path.c_str(), mean_pixel, class_labels_path.c_str(), threshold);
+		net = detectNet::Create(prototxt_path.c_str(), model_path.c_str(), mean_pixel, class_labels_path.c_str(), threshold, input_blob.c_str(), output_cvg.c_str(), output_box.c_str());
 	}
 
 	if( !net )
@@ -220,11 +271,12 @@ int main(int argc, char **argv)
 	/*
 	 * create an image converter object
 	 */
-	cvt = new imageConverter();
-	
-	if( !cvt )
+	input_cvt = new imageConverter();
+	overlay_cvt = new imageConverter();
+
+	if( !input_cvt || !overlay_cvt )
 	{
-		ROS_ERROR("failed to create imageConverter object");
+		ROS_ERROR("failed to create imageConverter objects");
 		return 0;
 	}
 
@@ -233,6 +285,8 @@ int main(int argc, char **argv)
 	 * advertise publisher topics
 	 */
 	CREATE_PUBLISHER(vision_msgs::Detection2DArray, "detections", 25, detection_pub);
+	CREATE_PUBLISHER(sensor_msgs::Image, "overlay", 2, overlay_pub);
+	
 	CREATE_PUBLISHER_STATUS(vision_msgs::VisionInfo, "vision_info", 1, info_callback, info_pub);
 
 
