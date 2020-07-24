@@ -53,6 +53,8 @@ using Publisher = ros::Publisher*;
 
 #define ROS_TIME_NOW()										ros::Time::now()
 #define ROS_SPIN()											ros::spin()
+#define ROS_SPIN_ONCE()										ros::spinOnce()
+#define ROS_OK()											ros::ok()
 
 #elif ROS2
 
@@ -111,7 +113,8 @@ extern rclcpp::Clock::SharedPtr __global_clock_;
 
 #define ROS_TIME_NOW()										__global_clock_->now()
 #define ROS_SPIN()											rclcpp::spin(node)
-
+#define ROS_SPIN_ONCE()										rclcpp::spin_some(node)
+#define ROS_OK()											rclcpp::ok()
 
 #endif
 #endif

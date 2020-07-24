@@ -61,6 +61,11 @@ public:
 	~imageConverter();
 
 	/**
+	 * Free the memory
+	 */
+	void Free();
+
+	/**
 	 * Convert to 32-bit RGBA floating point
 	 */
 	bool Convert( const sensor_msgs::ImageConstPtr& input );
@@ -69,6 +74,11 @@ public:
 	 * Convert to ROS sensor_msgs::Image message
 	 */
 	bool Convert( sensor_msgs::Image& msg_out, imageFormat outputFormat );
+
+	/**
+	 * Convert to ROS sensor_msgs::Image message
+	 */
+	bool Convert( sensor_msgs::Image& msg_out, imageFormat outputFormat, PixelType* imageGPU );
 
 	/**
 	 * Resize the memory (if necessary)
