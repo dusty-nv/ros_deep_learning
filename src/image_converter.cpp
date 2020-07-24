@@ -25,12 +25,6 @@
 #include <jetson-utils/cudaRGB.h>
 #include <jetson-utils/cudaMappedMemory.h>
 
-#ifdef ROS1
-#include <sensor_msgs/image_encodings.h>
-#elif ROS2
-#include <sensor_msgs/image_encodings.hpp>
-#endif
-
 
 
 

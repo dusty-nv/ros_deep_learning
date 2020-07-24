@@ -109,8 +109,8 @@ int main(int argc, char **argv)
 	bool use_model_name = false;
 
 	// determine if custom model paths were specified
-	if( !GET_PARAMETER("prototxt_path", prototxt_path) ||
-	    !GET_PARAMETER("model_path", model_path) ||
+	if( !GET_PARAMETER("prototxt_path", prototxt_path) &&
+	    !GET_PARAMETER("model_path", model_path) &&
 	    !GET_PARAMETER("class_labels_path", class_labels_path) )
 	{
 		// without custom model, use one of the built-in pretrained models
@@ -138,8 +138,15 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		// get input/output layer names
+		std::string input_blob = IMAGENET_DEFAULT_INPUT;
+		std::string output_blob = IMAGENET_DEFAULT_OUTPUT;
+
+		GET_PARAMETER_OR("input_blob", input_blob, input_blob);
+		GET_PARAMETER_OR("output_blob", output_blob, output_blob);
+
 		// create network using custom model paths
-		net = imageNet::Create(prototxt_path.c_str(), model_path.c_str(), NULL, class_labels_path.c_str());
+		net = imageNet::Create(prototxt_path.c_str(), model_path.c_str(), NULL, class_labels_path.c_str(), input_blob.c_str(), output_blob.c_str());
 	}
 
 	if( !net )

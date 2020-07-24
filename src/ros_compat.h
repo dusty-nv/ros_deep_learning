@@ -27,6 +27,7 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/image_encodings.h>
 #include <vision_msgs/Classification2D.h>
 #include <vision_msgs/Detection2DArray.h>
 #include <vision_msgs/VisionInfo.h>
@@ -44,6 +45,7 @@ using Publisher = ros::Publisher*;
 
 #define CREATE_SUBSCRIBER(msg, topic, queue, callback)				private_nh.subscribe(topic, queue, callback)
 
+#define NUM_SUBSCRIBERS(publisher)								publisher->getNumSubscribers()
 #define GET_NAMESPACE()										private_nh.getNamespace()
 #define GET_PARAMETER(name, val)								private_nh.getParam(name, val)
 #define GET_PARAMETER_OR(name, val, alt)						private_nh.param(name, val, alt)
@@ -56,6 +58,7 @@ using Publisher = ros::Publisher*;
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/image_encodings.hpp>
 #include <vision_msgs/msg/classification2_d.hpp>
 #include <vision_msgs/msg/detection2_d_array.hpp>
 #include <vision_msgs/msg/vision_info.hpp>
@@ -98,6 +101,7 @@ using Publisher = std::shared_ptr<ros::Publisher<MessageType>>;
 
 #define CREATE_SUBSCRIBER(msg, topic, queue, callback)				node->create_subscription<msg>(topic, queue, callback)
 
+#define NUM_SUBSCRIBERS(publisher)								publisher->get_subscription_count()
 #define GET_NAMESPACE()										node->get_namespace()
 #define GET_PARAMETER(name, val)								node->get_parameter(name, val)
 #define GET_PARAMETER_OR(name, val, alt)						node->get_parameter_or(name, val, alt)	// TODO set undefined params in param server
