@@ -317,6 +317,16 @@ int main(int argc, char **argv)
 	ROS_INFO("segnet node initialized, waiting for messages");
 	ROS_SPIN();
 
+
+	/*
+	 * free resources
+	 */
+	delete net;
+	delete input_cvt;
+	delete overlay_cvt;
+	delete mask_color_cvt;
+	delete mask_class_cvt;
+
 	return 0;
 }
 

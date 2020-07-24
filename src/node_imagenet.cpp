@@ -219,6 +219,13 @@ int main(int argc, char **argv)
 	ROS_INFO("imagenet node initialized, waiting for messages");
 	ROS_SPIN();
 
+
+	/*
+	 * free resources
+	 */
+	delete net;
+	delete cvt;
+
 	return 0;
 }
 

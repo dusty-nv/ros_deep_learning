@@ -305,6 +305,14 @@ int main(int argc, char **argv)
 	ROS_INFO("detectnet node initialized, waiting for messages");
 	ROS_SPIN();
 
+
+	/*
+	 * free resources
+	 */
+	delete net;
+	delete input_cvt;
+	delete overlay_cvt;
+
 	return 0;
 }
 
