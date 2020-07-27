@@ -149,15 +149,15 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 	}
 
 	// color overlay
-	if( NUM_SUBSCRIBERS(overlay_pub) > 0 )
+	if( ROS_NUM_SUBSCRIBERS(overlay_pub) > 0 )
 		publish_overlay(input->width, input->height);
 
 	// color mask
-	if( NUM_SUBSCRIBERS(mask_color_pub) > 0 )
+	if( ROS_NUM_SUBSCRIBERS(mask_color_pub) > 0 )
 		publish_mask_color(input->width, input->height);
 
 	// class mask
-	if( NUM_SUBSCRIBERS(mask_class_pub) > 0 )
+	if( ROS_NUM_SUBSCRIBERS(mask_class_pub) > 0 )
 		publish_mask_class(net->GetGridWidth(), net->GetGridHeight());
 }
 
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 	/*
 	 * create node instance
 	 */
-	CREATE_NODE("segnet");
+	ROS_CREATE_NODE("segnet");
 
 	/*
 	 * retrieve parameters
@@ -182,12 +182,12 @@ int main(int argc, char **argv)
 	bool use_model_name = false;
 
 	// determine if custom model paths were specified
-	if( !GET_PARAMETER("prototxt_path", prototxt_path) &&
-	    !GET_PARAMETER("model_path", model_path) &&
-	    !GET_PARAMETER("class_labels_path", class_labels_path) )
+	if( !ROS_GET_PARAMETER("prototxt_path", prototxt_path) &&
+	    !ROS_GET_PARAMETER("model_path", model_path) &&
+	    !ROS_GET_PARAMETER("class_labels_path", class_labels_path) )
 	{
 		// without custom model, use one of the pretrained built-in models
-		GET_PARAMETER_OR("model_name", model_name, std::string("fcn-resnet18-cityscapes-1024x512"));
+		ROS_GET_PARAMETER_OR("model_name", model_name, std::string("fcn-resnet18-cityscapes-1024x512"));
 		use_model_name = true;
 	}
 
@@ -196,8 +196,8 @@ int main(int argc, char **argv)
 	std::string overlay_filter_str = "linear";
 	std::string mask_filter_str    = "linear";
 
-	GET_PARAMETER_OR("overlay_filter", overlay_filter_str, overlay_filter_str);
-	GET_PARAMETER_OR("mask_filter", mask_filter_str, mask_filter_str);
+	ROS_GET_PARAMETER_OR("overlay_filter", overlay_filter_str, overlay_filter_str);
+	ROS_GET_PARAMETER_OR("mask_filter", mask_filter_str, mask_filter_str);
 
 	overlay_filter = segNet::FilterModeFromStr(overlay_filter_str.c_str(), segNet::FILTER_LINEAR);
 	mask_filter    = segNet::FilterModeFromStr(mask_filter_str.c_str(), segNet::FILTER_LINEAR);
@@ -226,11 +226,11 @@ int main(int argc, char **argv)
 		std::string input_blob = SEGNET_DEFAULT_INPUT;
 		std::string output_blob = SEGNET_DEFAULT_OUTPUT;
 
-		GET_PARAMETER_OR("input_blob", input_blob, input_blob);
-		GET_PARAMETER_OR("output_blob", output_blob, output_blob);
+		ROS_GET_PARAMETER_OR("input_blob", input_blob, input_blob);
+		ROS_GET_PARAMETER_OR("output_blob", output_blob, output_blob);
 
 		// optional parameters for custom models
-		GET_PARAMETER("class_colors_path", class_colors_path);
+		ROS_GET_PARAMETER("class_colors_path", class_colors_path);
 
 		// create network using custom model paths
 		net = segNet::Create(prototxt_path.c_str(), model_path.c_str(), class_labels_path.c_str(), class_colors_path.c_str(), input_blob.c_str(), output_blob.c_str());
@@ -267,10 +267,10 @@ int main(int argc, char **argv)
 
 	// create the key on the param server
 	std::string class_key = std::string("class_labels_") + std::to_string(model_hash);
-	SET_PARAMETER(class_key, class_descriptions);
+	ROS_SET_PARAMETER(class_key, class_descriptions);
 		
 	// populate the vision info msg
-	std::string node_namespace = GET_NAMESPACE();
+	std::string node_namespace = ROS_GET_NAMESPACE();
 	ROS_INFO("node namespace => %s", node_namespace.c_str());
 
 	info_msg.database_location = node_namespace + std::string("/") + class_key;
@@ -298,17 +298,17 @@ int main(int argc, char **argv)
 	/*
 	 * advertise publisher topics
 	 */
-	CREATE_PUBLISHER(sensor_msgs::Image, "overlay", 2, overlay_pub);
-	CREATE_PUBLISHER(sensor_msgs::Image, "color_mask", 2, mask_color_pub);
-	CREATE_PUBLISHER(sensor_msgs::Image, "class_mask", 2, mask_class_pub);
+	ROS_CREATE_PUBLISHER(sensor_msgs::Image, "overlay", 2, overlay_pub);
+	ROS_CREATE_PUBLISHER(sensor_msgs::Image, "color_mask", 2, mask_color_pub);
+	ROS_CREATE_PUBLISHER(sensor_msgs::Image, "class_mask", 2, mask_class_pub);
 	
-	CREATE_PUBLISHER_STATUS(vision_msgs::VisionInfo, "vision_info", 1, info_callback, info_pub);
+	ROS_CREATE_PUBLISHER_STATUS(vision_msgs::VisionInfo, "vision_info", 1, info_callback, info_pub);
 
 
 	/*
 	 * subscribe to image topic
 	 */
-	auto img_sub = CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
+	auto img_sub = ROS_CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
 
 	
 	/*

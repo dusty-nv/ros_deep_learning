@@ -153,7 +153,7 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 	}
 
 	// generate the overlay (if there are subscribers)
-	if( NUM_SUBSCRIBERS(overlay_pub) > 0 )
+	if( ROS_NUM_SUBSCRIBERS(overlay_pub) > 0 )
 		publish_overlay(detections, numDetections);
 }
 
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 	/*
 	 * create node instance
 	 */
-	CREATE_NODE("detectnet");
+	ROS_CREATE_NODE("detectnet");
 
 	/*
 	 * retrieve parameters
@@ -177,10 +177,10 @@ int main(int argc, char **argv)
 	bool use_model_name = false;
 
 	// determine if custom model paths were specified
-	if( !GET_PARAMETER("prototxt_path", prototxt_path) && !GET_PARAMETER("model_path", model_path) )
+	if( !ROS_GET_PARAMETER("prototxt_path", prototxt_path) && !ROS_GET_PARAMETER("model_path", model_path) )
 	{
 		// without custom model, use one of the built-in pretrained models
-		GET_PARAMETER_OR("model_name", model_name, std::string("ssd-mobilenet-v2"));
+		ROS_GET_PARAMETER_OR("model_name", model_name, std::string("ssd-mobilenet-v2"));
 		use_model_name = true;
 	}
 
@@ -188,12 +188,12 @@ int main(int argc, char **argv)
 	float mean_pixel = 0.0f;
 	float threshold  = DETECTNET_DEFAULT_THRESHOLD;
 	
-	GET_PARAMETER_OR("mean_pixel_value", mean_pixel, mean_pixel); //private_nh.param<float>("mean_pixel_value", mean_pixel, mean_pixel);
-	GET_PARAMETER_OR("threshold", threshold, threshold);
+	ROS_GET_PARAMETER_OR("mean_pixel_value", mean_pixel, mean_pixel); //private_nh.param<float>("mean_pixel_value", mean_pixel, mean_pixel);
+	ROS_GET_PARAMETER_OR("threshold", threshold, threshold);
 
 	// parse overlay flags
 	std::string overlay_str = "box,labels,conf";
-	GET_PARAMETER_OR("overlay_flags", overlay_str, overlay_str);
+	ROS_GET_PARAMETER_OR("overlay_flags", overlay_str, overlay_str);
 	overlay_flags = detectNet::OverlayFlagsFromStr(overlay_str.c_str());
 
 
@@ -221,12 +221,12 @@ int main(int argc, char **argv)
 		std::string output_cvg = DETECTNET_DEFAULT_COVERAGE;
 		std::string output_box = DETECTNET_DEFAULT_BBOX;
 
-		GET_PARAMETER_OR("input_blob", input_blob, input_blob);
-		GET_PARAMETER_OR("output_cvg", output_cvg, output_cvg);
-		GET_PARAMETER_OR("output_bbox", output_box, output_box);
+		ROS_GET_PARAMETER_OR("input_blob", input_blob, input_blob);
+		ROS_GET_PARAMETER_OR("output_cvg", output_cvg, output_cvg);
+		ROS_GET_PARAMETER_OR("output_bbox", output_box, output_box);
 
 		// get the class labels path (optional)
-		GET_PARAMETER("class_labels_path", class_labels_path);
+		ROS_GET_PARAMETER("class_labels_path", class_labels_path);
 
 		// create network using custom model paths
 		net = detectNet::Create(prototxt_path.c_str(), model_path.c_str(), mean_pixel, class_labels_path.c_str(), threshold, input_blob.c_str(), output_cvg.c_str(), output_box.c_str());
@@ -258,10 +258,10 @@ int main(int argc, char **argv)
 
 	// create the key on the param server
 	std::string class_key = std::string("class_labels_") + std::to_string(model_hash);
-	SET_PARAMETER(class_key, class_descriptions);
+	ROS_SET_PARAMETER(class_key, class_descriptions);
 		
 	// populate the vision info msg
-	std::string node_namespace = GET_NAMESPACE();
+	std::string node_namespace = ROS_GET_NAMESPACE();
 	ROS_INFO("node namespace => %s", node_namespace.c_str());
 
 	info_msg.database_location = node_namespace + std::string("/") + class_key;
@@ -287,16 +287,16 @@ int main(int argc, char **argv)
 	/*
 	 * advertise publisher topics
 	 */
-	CREATE_PUBLISHER(vision_msgs::Detection2DArray, "detections", 25, detection_pub);
-	CREATE_PUBLISHER(sensor_msgs::Image, "overlay", 2, overlay_pub);
+	ROS_CREATE_PUBLISHER(vision_msgs::Detection2DArray, "detections", 25, detection_pub);
+	ROS_CREATE_PUBLISHER(sensor_msgs::Image, "overlay", 2, overlay_pub);
 	
-	CREATE_PUBLISHER_STATUS(vision_msgs::VisionInfo, "vision_info", 1, info_callback, info_pub);
+	ROS_CREATE_PUBLISHER_STATUS(vision_msgs::VisionInfo, "vision_info", 1, info_callback, info_pub);
 
 
 	/*
 	 * subscribe to image topic
 	 */
-	auto img_sub = CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
+	auto img_sub = ROS_CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
 
 	
 	/*

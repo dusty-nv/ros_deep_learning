@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 	/*
 	 * create node instance
 	 */
-	CREATE_NODE("imagenet");
+	ROS_CREATE_NODE("imagenet");
 
 
 	/*
@@ -109,12 +109,12 @@ int main(int argc, char **argv)
 	bool use_model_name = false;
 
 	// determine if custom model paths were specified
-	if( !GET_PARAMETER("prototxt_path", prototxt_path) &&
-	    !GET_PARAMETER("model_path", model_path) &&
-	    !GET_PARAMETER("class_labels_path", class_labels_path) )
+	if( !ROS_GET_PARAMETER("prototxt_path", prototxt_path) &&
+	    !ROS_GET_PARAMETER("model_path", model_path) &&
+	    !ROS_GET_PARAMETER("class_labels_path", class_labels_path) )
 	{
 		// without custom model, use one of the built-in pretrained models
-		GET_PARAMETER_OR("model_name", model_name, std::string("googlenet"));
+		ROS_GET_PARAMETER_OR("model_name", model_name, std::string("googlenet"));
 		use_model_name = true;
 	}
 
@@ -142,8 +142,8 @@ int main(int argc, char **argv)
 		std::string input_blob = IMAGENET_DEFAULT_INPUT;
 		std::string output_blob = IMAGENET_DEFAULT_OUTPUT;
 
-		GET_PARAMETER_OR("input_blob", input_blob, input_blob);
-		GET_PARAMETER_OR("output_blob", output_blob, output_blob);
+		ROS_GET_PARAMETER_OR("input_blob", input_blob, input_blob);
+		ROS_GET_PARAMETER_OR("output_blob", output_blob, output_blob);
 
 		// create network using custom model paths
 		net = imageNet::Create(prototxt_path.c_str(), model_path.c_str(), NULL, class_labels_path.c_str(), input_blob.c_str(), output_blob.c_str());
@@ -176,10 +176,10 @@ int main(int argc, char **argv)
 
 	// create the key on the param server
 	std::string class_key = std::string("class_labels_") + std::to_string(model_hash);
-	SET_PARAMETER(class_key, class_descriptions);
+	ROS_SET_PARAMETER(class_key, class_descriptions);
 	
 	// populate the vision info msg
-	const std::string node_namespace = GET_NAMESPACE();
+	const std::string node_namespace = ROS_GET_NAMESPACE();
 	ROS_INFO("node namespace => %s", node_namespace.c_str());
 
 	info_msg.database_location = node_namespace + std::string("/") + class_key;
@@ -203,14 +203,14 @@ int main(int argc, char **argv)
 	/*
 	 * advertise publisher topics
 	 */
-	CREATE_PUBLISHER(vision_msgs::Classification2D, "classification", 5, classify_pub);
-	CREATE_PUBLISHER_STATUS(vision_msgs::VisionInfo, "vision_info", 1, info_callback, info_pub);
+	ROS_CREATE_PUBLISHER(vision_msgs::Classification2D, "classification", 5, classify_pub);
+	ROS_CREATE_PUBLISHER_STATUS(vision_msgs::VisionInfo, "vision_info", 1, info_callback, info_pub);
 
 
 	/*
 	 * subscribe to image topic
 	 */
-	auto img_sub = CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
+	auto img_sub = ROS_CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
 
 
 	/*
