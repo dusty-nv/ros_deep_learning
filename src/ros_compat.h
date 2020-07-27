@@ -32,7 +32,7 @@
 #include <vision_msgs/Detection2DArray.h>
 #include <vision_msgs/VisionInfo.h>
 
-#define CREATE_NODE(name)				\
+#define ROS_CREATE_NODE(name)				\
 		ros::init(argc, argv, name); 		\
  		ros::NodeHandle nh; 			\
 		ros::NodeHandle private_nh("~");
@@ -40,21 +40,22 @@
 template<class MessageType>
 using Publisher = ros::Publisher*;
 
-#define CREATE_PUBLISHER(msg, topic, queue, ptr)					ros::Publisher __publisher_##ptr = private_nh.advertise<msg>(topic, queue); ptr = &__publisher_##ptr
-#define CREATE_PUBLISHER_STATUS(msg, topic, queue, callback, ptr)	ros::Publisher __publisher_##ptr = private_nh.advertise<msg>(topic, queue, [&](const ros::SingleSubscriberPublisher& connect_msg){callback();}); ptr = &__publisher_##ptr
+#define ROS_CREATE_PUBLISHER(msg, topic, queue, ptr)				ros::Publisher __publisher_##ptr = private_nh.advertise<msg>(topic, queue); ptr = &__publisher_##ptr
+#define ROS_CREATE_PUBLISHER_STATUS(msg, topic, queue, callback, ptr)	ros::Publisher __publisher_##ptr = private_nh.advertise<msg>(topic, queue, [&](const ros::SingleSubscriberPublisher& connect_msg){callback();}); ptr = &__publisher_##ptr
 
-#define CREATE_SUBSCRIBER(msg, topic, queue, callback)				private_nh.subscribe(topic, queue, callback)
+#define ROS_CREATE_SUBSCRIBER(msg, topic, queue, callback)			private_nh.subscribe(topic, queue, callback)
 
-#define NUM_SUBSCRIBERS(publisher)								publisher->getNumSubscribers()
-#define GET_NAMESPACE()										private_nh.getNamespace()
-#define GET_PARAMETER(name, val)								private_nh.getParam(name, val)
-#define GET_PARAMETER_OR(name, val, alt)						private_nh.param(name, val, alt)
-#define SET_PARAMETER(name, val)								private_nh.setParam(name, val)
+#define ROS_NUM_SUBSCRIBERS(publisher)							publisher->getNumSubscribers()
+#define ROS_GET_NAMESPACE()									private_nh.getNamespace()
+#define ROS_GET_PARAMETER(name, val)							private_nh.getParam(name, val)
+#define ROS_GET_PARAMETER_OR(name, val, alt)						private_nh.param(name, val, alt)
+#define ROS_SET_PARAMETER(name, val)							private_nh.setParam(name, val)
 
 #define ROS_TIME_NOW()										ros::Time::now()
 #define ROS_SPIN()											ros::spin()
 #define ROS_SPIN_ONCE()										ros::spinOnce()
 #define ROS_OK()											ros::ok()
+#define ROS_SHUTDOWN() 										ros::shutdown()
 
 #elif ROS2
 
@@ -87,7 +88,7 @@ namespace ros = rclcpp;
 #define ROS_INFO(...)	RCUTILS_LOG_INFO(__VA_ARGS__)
 #define ROS_ERROR(...)   RCUTILS_LOG_ERROR(__VA_ARGS__)
 
-#define CREATE_NODE(name)							\
+#define ROS_CREATE_NODE(name)							\
 		rclcpp::init(argc, argv);					\
 		rclcpp::NodeOptions node_options;				\
 		node_options.allow_undeclared_parameters(true); 	\
@@ -97,17 +98,17 @@ namespace ros = rclcpp;
 template<class MessageType>
 using Publisher = std::shared_ptr<ros::Publisher<MessageType>>;
 
-#define CREATE_PUBLISHER(msg, topic, queue, ptr)					ptr = node->create_publisher<msg>(topic, queue)
-#define CREATE_PUBLISHER_STATUS(msg, topic, queue, callback, ptr)	ptr = node->create_publisher<msg>(topic, queue); rclcpp::TimerBase::SharedPtr __timer_publisher_##ptr = node->create_wall_timer(std::chrono::milliseconds(500), \
+#define ROS_CREATE_PUBLISHER(msg, topic, queue, ptr)				ptr = node->create_publisher<msg>(topic, queue)
+#define ROS_CREATE_PUBLISHER_STATUS(msg, topic, queue, callback, ptr)	ptr = node->create_publisher<msg>(topic, queue); rclcpp::TimerBase::SharedPtr __timer_publisher_##ptr = node->create_wall_timer(std::chrono::milliseconds(500), \
 														[&](){ static int __subscribers_##ptr=0; const size_t __subscription_count=ptr->get_subscription_count(); if(__subscribers_##ptr != __subscription_count) { if(__subscription_count > __subscribers_##ptr) callback(); __subscribers_##ptr=__subscription_count; }}) 
 
-#define CREATE_SUBSCRIBER(msg, topic, queue, callback)				node->create_subscription<msg>(topic, queue, callback)
+#define ROS_CREATE_SUBSCRIBER(msg, topic, queue, callback)			node->create_subscription<msg>(topic, queue, callback)
 
-#define NUM_SUBSCRIBERS(publisher)								publisher->get_subscription_count()
-#define GET_NAMESPACE()										node->get_namespace()
-#define GET_PARAMETER(name, val)								node->get_parameter(name, val)
-#define GET_PARAMETER_OR(name, val, alt)						node->get_parameter_or(name, val, alt)	// TODO set undefined params in param server
-#define SET_PARAMETER(name, val)								node->set_parameter(rclcpp::Parameter(name, val))
+#define ROS_NUM_SUBSCRIBERS(publisher)							publisher->get_subscription_count()
+#define ROS_GET_NAMESPACE()									node->get_namespace()
+#define ROS_GET_PARAMETER(name, val)							node->get_parameter(name, val)
+#define ROS_GET_PARAMETER_OR(name, val, alt)						node->get_parameter_or(name, val, alt)	// TODO set undefined params in param server
+#define ROS_SET_PARAMETER(name, val)							node->set_parameter(rclcpp::Parameter(name, val))
 
 extern rclcpp::Clock::SharedPtr __global_clock_;
 
@@ -115,6 +116,7 @@ extern rclcpp::Clock::SharedPtr __global_clock_;
 #define ROS_SPIN()											rclcpp::spin(node)
 #define ROS_SPIN_ONCE()										rclcpp::spin_some(node)
 #define ROS_OK()											rclcpp::ok()
+#define ROS_SHUTDOWN() 										rclcpp::shutdown()
 
 #endif
 #endif

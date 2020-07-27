@@ -71,6 +71,9 @@ target_link_libraries(segnet ${catkin_LIBRARIES} jetson-inference)
 add_executable(video_source src/node_video_source.cpp ${common_src})
 target_link_libraries(video_source ${catkin_LIBRARIES} jetson-inference)
 
+add_executable(video_output src/node_video_output.cpp ${common_src})
+target_link_libraries(video_output ${catkin_LIBRARIES} jetson-inference)
+
 if( catkin_FOUND )
 	add_library(ros_deep_learning_nodelets src/nodelet_imagenet.cpp src/image_converter.cpp)
 	target_link_libraries(ros_deep_learning_nodelets ${catkin_LIBRARIES} jetson-inference)
@@ -90,6 +93,11 @@ else()
 
 	ament_target_dependencies(video_source rclcpp std_msgs sensor_msgs vision_msgs)
 	install(TARGETS video_source DESTINATION lib/${PROJECT_NAME})
+
+	ament_target_dependencies(video_output rclcpp std_msgs sensor_msgs vision_msgs)
+	install(TARGETS video_output DESTINATION lib/${PROJECT_NAME})
+
+	install(DIRECTORY launch DESTINATION share/${PROJECT_NAME}/)
 
 	ament_package()
 endif()

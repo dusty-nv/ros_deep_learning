@@ -1,0 +1,4 @@
+<launch>
+	<arg name="input" value="/dev/video1" />
+	<node pkg="ros_deep_learning" exec="video_source" name="my_camera" args="$(arg input)" output="screen" />
+</launch>

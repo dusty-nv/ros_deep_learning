@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	/*
 	 * create node instance
 	 */
-	CREATE_NODE("video_source");
+	ROS_CREATE_NODE("video_source");
 
 	/*
 	 * retrieve parameters
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 #if 0
 	std::string resource_str;
 
-	if( !GET_PARAMETER("resource", resource_str) )
+	if( !ROS_GET_PARAMETER("resource", resource_str) )
 	{
 		ROS_ERROR("resource param wasn't set - please set the resource parameter to the input device/filename/URL");
 		return 0;
@@ -98,6 +98,9 @@ int main(int argc, char **argv)
 	 */
 	stream = videoSource::Create(resource_str.c_str());
 #else
+	commandLine cmdLine(argc, argv);
+	cmdLine.Print();
+
 	stream = videoSource::Create(argc, argv, ARG_POSITION(0)); 
 #endif
 	
@@ -123,7 +126,7 @@ int main(int argc, char **argv)
 	/*
 	 * advertise publisher topics
 	 */
-	CREATE_PUBLISHER(sensor_msgs::Image, "raw", 2, image_pub);
+	ROS_CREATE_PUBLISHER(sensor_msgs::Image, "raw", 2, image_pub);
 
 
 	/*
