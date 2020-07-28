@@ -1,0 +1,21 @@
+<launch>
+
+	<!-- VIDEO SOURCE -->
+	<include file="$(find-pkg-share ros_deep_learning)/launch/video_source.ros2.launch"/>
+
+	<!-- DETECTNET -->
+	<arg name="model_name" default="ssd-mobilenet-v2"/>
+	<arg name="threshold" default="0.5"/>
+
+	<node pkg="ros_deep_learning" exec="detectnet" output="screen">
+		<remap from="/detectnet/image_in" to="/video_source/raw"/>
+		<param name="model_name" value="$(var model_name)"/>
+		<param name="threshold" value="$(var threshold)"/>
+	</node>
+
+	<!-- VIDEO OUTPUT -->
+	<include file="$(find-pkg-share ros_deep_learning)/launch/video_output.ros2.launch">
+		<arg name="topic" value="/detectnet/overlay"/>
+	</include>
+
+</launch>

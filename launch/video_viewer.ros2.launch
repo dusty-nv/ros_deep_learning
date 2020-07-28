@@ -1,0 +1,11 @@
+<launch>
+
+	<!-- VIDEO SOURCE -->
+	<include file="$(find-pkg-share ros_deep_learning)/launch/video_source.ros2.launch"/>
+
+	<!-- VIDEO OUTPUT -->
+	<include file="$(find-pkg-share ros_deep_learning)/launch/video_output.ros2.launch">
+		<arg name="topic" value="/video_source/raw"/>
+	</include>
+
+</launch>

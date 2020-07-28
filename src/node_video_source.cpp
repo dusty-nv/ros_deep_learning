@@ -66,7 +66,8 @@ bool aquireFrame()
 
 	// publish the message
 	image_pub->publish(msg);
-	ROS_INFO("published %ux%u video frame", stream->GetWidth(), stream->GetHeight());
+	ROS_DEBUG("published %ux%u video frame", stream->GetWidth(), stream->GetHeight());
+	
 	return true;
 }
 
@@ -80,30 +81,52 @@ int main(int argc, char **argv)
 	ROS_CREATE_NODE("video_source");
 
 	/*
+	 * declare parameters
+	 */
+	videoOptions video_options;
+
+	std::string resource_str;
+	std::string codec_str;
+
+	int video_width = video_options.width;
+	int video_height = video_options.height;
+
+	ROS_DECLARE_PARAMETER("resource", resource_str);
+	ROS_DECLARE_PARAMETER("codec", codec_str);
+	ROS_DECLARE_PARAMETER("width", video_width);
+	ROS_DECLARE_PARAMETER("height", video_height);
+	ROS_DECLARE_PARAMETER("framerate", video_options.frameRate);
+	ROS_DECLARE_PARAMETER("loop", video_options.loop);
+	
+	/*
 	 * retrieve parameters
 	 */
-#if 0
-	std::string resource_str;
-
-	if( !ROS_GET_PARAMETER("resource", resource_str) )
+	ROS_GET_PARAMETER("resource", resource_str);
+	ROS_GET_PARAMETER("codec", codec_str);
+	ROS_GET_PARAMETER("width", video_width);
+	ROS_GET_PARAMETER("height", video_height);
+	ROS_GET_PARAMETER("framerate", video_options.frameRate);
+	ROS_GET_PARAMETER("loop", video_options.loop);
+	
+	if( resource_str.size() == 0 )
 	{
-		ROS_ERROR("resource param wasn't set - please set the resource parameter to the input device/filename/URL");
+		ROS_ERROR("resource param wasn't set - please set the node's resource parameter to the input device/filename/URL");
 		return 0;
 	}
+
+	if( codec_str.size() != 0 )
+		video_options.codec = videoOptions::CodecFromStr(codec_str.c_str());
+
+	video_options.width = video_width;
+	video_options.height = video_height;
 
 	ROS_INFO("opening video source: %s", resource_str.c_str());
 
 	/*
 	 * open video source
 	 */
-	stream = videoSource::Create(resource_str.c_str());
-#else
-	commandLine cmdLine(argc, argv);
-	cmdLine.Print();
+	stream = videoSource::Create(resource_str.c_str(), video_options);
 
-	stream = videoSource::Create(argc, argv, ARG_POSITION(0)); 
-#endif
-	
 	if( !stream )
 	{
 		ROS_ERROR("failed to open video source");
@@ -142,7 +165,7 @@ int main(int argc, char **argv)
 	/*
 	 * start publishing video frames
 	 */
-	while( ros::ok() )
+	while( ROS_OK() )
 	{
 		if( !aquireFrame() )
 		{
@@ -153,7 +176,8 @@ int main(int argc, char **argv)
 			}
 		}
 
-		ROS_SPIN_ONCE();
+		if( ROS_OK() )
+			ROS_SPIN_ONCE();
 	}
 
 
