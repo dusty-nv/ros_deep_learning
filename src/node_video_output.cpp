@@ -31,6 +31,8 @@
 videoOutput* stream = NULL;
 imageConverter* image_cvt = NULL;
 
+std::string topic_name;
+
 
 // input image subscriber callback
 void img_callback( const sensor_msgs::ImageConstPtr input )
@@ -42,8 +44,15 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 		return;	
 	}
 
+	// render the image
 	stream->Render(image_cvt->ImageGPU(), image_cvt->GetWidth(), image_cvt->GetHeight());
 
+	// update status bar
+	char str[256];
+	sprintf(str, "%s (%ux%u) | %.1f FPS", topic_name.c_str(), image_cvt->GetWidth(), image_cvt->GetHeight(), stream->GetFrameRate());
+	stream->SetStatus(str);	
+
+	// check for EOS
 	if( !stream->IsStreaming() )
 		ROS_SHUTDOWN();
 }
@@ -57,10 +66,46 @@ int main(int argc, char **argv)
 	 */
 	ROS_CREATE_NODE("video_output");
 
+
+	/*
+	 * declare parameters
+	 */
+	videoOptions video_options;
+
+	std::string resource_str;
+	std::string codec_str;
+
+	int video_bitrate = video_options.bitRate;
+
+	ROS_DECLARE_PARAMETER("resource", resource_str);
+	ROS_DECLARE_PARAMETER("codec", codec_str);
+	ROS_DECLARE_PARAMETER("bitrate", video_bitrate);
+	
+	/*
+	 * retrieve parameters
+	 */
+	ROS_GET_PARAMETER("resource", resource_str);
+	ROS_GET_PARAMETER("codec", codec_str);
+	ROS_GET_PARAMETER("bitRate", video_bitrate);
+
+	if( resource_str.size() == 0 )
+	{
+		ROS_ERROR("resource param wasn't set - please set the node's resource parameter to the input device/filename/URL");
+		return 0;
+	}
+
+	if( codec_str.size() != 0 )
+		video_options.codec = videoOptions::CodecFromStr(codec_str.c_str());
+
+	video_options.bitRate = video_bitrate;
+
+	ROS_INFO("opening video output: %s", resource_str.c_str());
+
+
 	/*
 	 * create stream
 	 */
-	stream = videoOutput::Create(commandLine(argc, argv, "headless"), ARG_POSITION(0)); 
+	stream = videoOutput::Create(resource_str.c_str(), video_options); 
 	
 	if( !stream )
 	{
@@ -85,6 +130,8 @@ int main(int argc, char **argv)
 	 * subscribe to image topic
 	 */
 	auto img_sub = ROS_CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
+	
+	topic_name = ROS_SUBSCRIBER_TOPIC(img_sub);
 
 
 	/*

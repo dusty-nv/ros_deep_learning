@@ -24,7 +24,6 @@
 #include "image_converter.h"
 
 #include <jetson-inference/segNet.h>
-#include <jetson-utils/cudaMappedMemory.h>
 
 #include <unordered_map>
 
@@ -170,34 +169,48 @@ int main(int argc, char **argv)
 	 */
 	ROS_CREATE_NODE("segnet");
 
+
+	/*
+	 * declare parameters
+	 */
+	std::string model_name = "fcn-resnet18-cityscapes-1024x512";
+	std::string model_path;	
+	std::string prototxt_path;
+	std::string class_labels_path;
+	std::string class_colors_path;
+
+	std::string input_blob = SEGNET_DEFAULT_INPUT;
+	std::string output_blob = SEGNET_DEFAULT_OUTPUT;
+
+	std::string mask_filter_str = "linear";
+	std::string overlay_filter_str = "linear";	
+
+	float overlay_alpha = 180.0f;
+
+	ROS_DECLARE_PARAMETER("model_name", model_name);
+	ROS_DECLARE_PARAMETER("model_path", model_path);
+	ROS_DECLARE_PARAMETER("prototxt_path", prototxt_path);
+	ROS_DECLARE_PARAMETER("class_labels_path", class_labels_path);
+	ROS_DECLARE_PARAMETER("class_colors_path", class_labels_path);
+	ROS_DECLARE_PARAMETER("input_blob", input_blob);
+	ROS_DECLARE_PARAMETER("output_blob", output_blob);
+	ROS_DECLARE_PARAMETER("mask_filter", mask_filter_str);
+	ROS_DECLARE_PARAMETER("overlay_filter", overlay_filter_str);
+	ROS_DECLARE_PARAMETER("overlay_alpha", overlay_alpha);
+	
 	/*
 	 * retrieve parameters
 	 */
-	std::string class_labels_path;
-	std::string class_colors_path;
-	std::string prototxt_path;
-	std::string model_path;
-	std::string model_name;
-
-	bool use_model_name = false;
-
-	// determine if custom model paths were specified
-	if( !ROS_GET_PARAMETER("prototxt_path", prototxt_path) &&
-	    !ROS_GET_PARAMETER("model_path", model_path) &&
-	    !ROS_GET_PARAMETER("class_labels_path", class_labels_path) )
-	{
-		// without custom model, use one of the pretrained built-in models
-		ROS_GET_PARAMETER_OR("model_name", model_name, std::string("fcn-resnet18-cityscapes-1024x512"));
-		use_model_name = true;
-	}
-
-	
-	// retrieve filter mode settings
-	std::string overlay_filter_str = "linear";
-	std::string mask_filter_str    = "linear";
-
-	ROS_GET_PARAMETER_OR("overlay_filter", overlay_filter_str, overlay_filter_str);
-	ROS_GET_PARAMETER_OR("mask_filter", mask_filter_str, mask_filter_str);
+	ROS_GET_PARAMETER("model_name", model_name);
+	ROS_GET_PARAMETER("model_path", model_path);
+	ROS_GET_PARAMETER("prototxt_path", prototxt_path);
+	ROS_GET_PARAMETER("class_labels_path", class_labels_path);
+	ROS_GET_PARAMETER("class_colors_path", class_labels_path);
+	ROS_GET_PARAMETER("input_blob", input_blob);
+	ROS_GET_PARAMETER("output_blob", output_blob);
+	ROS_GET_PARAMETER("mask_filter", mask_filter_str);
+	ROS_GET_PARAMETER("overlay_filter", overlay_filter_str);
+	ROS_GET_PARAMETER("overlay_alpha", overlay_alpha);
 
 	overlay_filter = segNet::FilterModeFromStr(overlay_filter_str.c_str(), segNet::FILTER_LINEAR);
 	mask_filter    = segNet::FilterModeFromStr(mask_filter_str.c_str(), segNet::FILTER_LINEAR);
@@ -206,7 +219,14 @@ int main(int argc, char **argv)
 	/*
 	 * load segmentation network
 	 */
-	if( use_model_name )
+	if( model_path.size() > 0 )
+	{
+		// create network using custom model paths
+		net = segNet::Create(prototxt_path.c_str(), model_path.c_str(), 
+						 class_labels_path.c_str(), class_colors_path.c_str(), 
+						 input_blob.c_str(), output_blob.c_str());
+	}
+	else
 	{
 		// determine which built-in model was requested
 		segNet::NetworkType model = segNet::NetworkTypeFromStr(model_name.c_str());
@@ -220,27 +240,15 @@ int main(int argc, char **argv)
 		// create network using the built-in model
 		net = segNet::Create(model);
 	}
-	else
-	{
-		// get input/output layer names
-		std::string input_blob = SEGNET_DEFAULT_INPUT;
-		std::string output_blob = SEGNET_DEFAULT_OUTPUT;
-
-		ROS_GET_PARAMETER_OR("input_blob", input_blob, input_blob);
-		ROS_GET_PARAMETER_OR("output_blob", output_blob, output_blob);
-
-		// optional parameters for custom models
-		ROS_GET_PARAMETER("class_colors_path", class_colors_path);
-
-		// create network using custom model paths
-		net = segNet::Create(prototxt_path.c_str(), model_path.c_str(), class_labels_path.c_str(), class_colors_path.c_str(), input_blob.c_str(), output_blob.c_str());
-	}
 
 	if( !net )
 	{
 		ROS_ERROR("failed to load segNet model");
 		return 0;
 	}
+
+	// set alpha blending value for classes that don't explicitly already have an alpha	
+	net->SetOverlayAlpha(overlay_alpha);
 
 
 	/*
@@ -267,6 +275,8 @@ int main(int argc, char **argv)
 
 	// create the key on the param server
 	std::string class_key = std::string("class_labels_") + std::to_string(model_hash);
+
+	ROS_DECLARE_PARAMETER(class_key, class_descriptions);
 	ROS_SET_PARAMETER(class_key, class_descriptions);
 		
 	// populate the vision info msg

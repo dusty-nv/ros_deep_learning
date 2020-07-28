@@ -1,0 +1,19 @@
+<launch>
+
+	<!-- VIDEO SOURCE -->
+	<include file="$(find-pkg-share ros_deep_learning)/launch/video_source.ros2.launch"/>
+
+	<!-- IMAGENET -->
+	<arg name="model_name" default="googlenet"/>
+
+	<node pkg="ros_deep_learning" exec="imagenet" output="screen">
+		<remap from="/imagenet/image_in" to="/video_source/raw"/>
+		<param name="model_name" value="$(var model_name)"/>
+	</node>
+
+	<!-- VIDEO OUTPUT -->
+	<include file="$(find-pkg-share ros_deep_learning)/launch/video_output.ros2.launch">
+		<arg name="topic" value="/imagenet/overlay"/>
+	</include>
+
+</launch>

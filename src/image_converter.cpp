@@ -119,7 +119,7 @@ void imageConverter::Free()
 // Convert
 bool imageConverter::Convert( const sensor_msgs::ImageConstPtr& input )
 {
-	ROS_INFO("converting %ux%u %s image", input->width, input->height, input->encoding.c_str());
+	ROS_DEBUG("converting %ux%u %s image", input->width, input->height, input->encoding.c_str());
 
 	// parse the input format
 	const imageFormat input_format = imageFormatFromEncoding(input->encoding);

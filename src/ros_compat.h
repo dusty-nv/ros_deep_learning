@@ -44,12 +44,21 @@ using Publisher = ros::Publisher*;
 #define ROS_CREATE_PUBLISHER_STATUS(msg, topic, queue, callback, ptr)	ros::Publisher __publisher_##ptr = private_nh.advertise<msg>(topic, queue, [&](const ros::SingleSubscriberPublisher& connect_msg){callback();}); ptr = &__publisher_##ptr
 
 #define ROS_CREATE_SUBSCRIBER(msg, topic, queue, callback)			private_nh.subscribe(topic, queue, callback)
+#define ROS_SUBSCRIBER_TOPIC(subscriber)						subscriber.getTopic()
 
 #define ROS_NUM_SUBSCRIBERS(publisher)							publisher->getNumSubscribers()
 #define ROS_GET_NAMESPACE()									private_nh.getNamespace()
 #define ROS_GET_PARAMETER(name, val)							private_nh.getParam(name, val)
 #define ROS_GET_PARAMETER_OR(name, val, alt)						private_nh.param(name, val, alt)
 #define ROS_SET_PARAMETER(name, val)							private_nh.setParam(name, val)
+
+template<typename T> static void __ros_declare_parameter( ros::NodeHandle& nh, const std::string& name, const T& default_value )
+{
+	if( !nh.hasParam(name) )
+		nh.setParam(name, default_value);
+}
+
+#define ROS_DECLARE_PARAMETER(name, default_value)				__ros_declare_parameter(private_nh, name, default_value)
 
 #define ROS_TIME_NOW()										ros::Time::now()
 #define ROS_SPIN()											ros::spin()
@@ -85,14 +94,16 @@ namespace sensor_msgs
 
 namespace ros = rclcpp;
 
-#define ROS_INFO(...)	RCUTILS_LOG_INFO(__VA_ARGS__)
-#define ROS_ERROR(...)   RCUTILS_LOG_ERROR(__VA_ARGS__)
+extern std::string __node_name_;
+
+#define ROS_INFO(...)	RCUTILS_LOG_INFO_NAMED(__node_name_.c_str(), __VA_ARGS__)
+#define ROS_DEBUG(...)	RCUTILS_LOG_DEBUG_NAMED(__node_name_.c_str(), __VA_ARGS__)
+#define ROS_ERROR(...)   RCUTILS_LOG_ERROR_NAMED(__node_name_.c_str(), __VA_ARGS__)
 
 #define ROS_CREATE_NODE(name)							\
 		rclcpp::init(argc, argv);					\
-		rclcpp::NodeOptions node_options;				\
-		node_options.allow_undeclared_parameters(true); 	\
-		auto node = rclcpp::Node::make_shared(name, "/" name,  node_options); \
+		auto node = rclcpp::Node::make_shared(name, "/" name); \
+		__node_name_ = name; \
 		__global_clock_ = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
 
 template<class MessageType>
@@ -103,12 +114,15 @@ using Publisher = std::shared_ptr<ros::Publisher<MessageType>>;
 														[&](){ static int __subscribers_##ptr=0; const size_t __subscription_count=ptr->get_subscription_count(); if(__subscribers_##ptr != __subscription_count) { if(__subscription_count > __subscribers_##ptr) callback(); __subscribers_##ptr=__subscription_count; }}) 
 
 #define ROS_CREATE_SUBSCRIBER(msg, topic, queue, callback)			node->create_subscription<msg>(topic, queue, callback)
+#define ROS_SUBSCRIBER_TOPIC(subscriber)						subscriber->get_topic_name();
 
 #define ROS_NUM_SUBSCRIBERS(publisher)							publisher->get_subscription_count()
 #define ROS_GET_NAMESPACE()									node->get_namespace()
 #define ROS_GET_PARAMETER(name, val)							node->get_parameter(name, val)
 #define ROS_GET_PARAMETER_OR(name, val, alt)						node->get_parameter_or(name, val, alt)	// TODO set undefined params in param server
 #define ROS_SET_PARAMETER(name, val)							node->set_parameter(rclcpp::Parameter(name, val))
+
+#define ROS_DECLARE_PARAMETER(name, default_value)				node->declare_parameter(name, default_value)
 
 extern rclcpp::Clock::SharedPtr __global_clock_;
 

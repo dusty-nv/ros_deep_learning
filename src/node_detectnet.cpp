@@ -24,7 +24,6 @@
 #include "image_converter.h"
 
 #include <jetson-inference/detectNet.h>
-#include <jetson-utils/cudaMappedMemory.h>
 
 #include <unordered_map>
 
@@ -80,7 +79,7 @@ bool publish_overlay( detectNet::Detection* detections, int numDetections )
 
 	// publish the message	
 	overlay_pub->publish(msg);
-	ROS_INFO("publishing %ux%u overlay image", width, height);
+	ROS_DEBUG("publishing %ux%u overlay image", width, height);
 }
 
 
@@ -168,39 +167,60 @@ int main(int argc, char **argv)
 
 	/*
 	 * retrieve parameters
-	 */
-	std::string class_labels_path;
-	std::string prototxt_path;
+	 */	
+	std::string model_name  = "ssd-mobilenet-v2";
 	std::string model_path;
-	std::string model_name;
+	std::string prototxt_path;
+	std::string class_labels_path;
+	
+	std::string input_blob  = DETECTNET_DEFAULT_INPUT;
+	std::string output_cvg  = DETECTNET_DEFAULT_COVERAGE;
+	std::string output_bbox = DETECTNET_DEFAULT_BBOX;
+	std::string overlay_str = "box,labels,conf";
 
-	bool use_model_name = false;
-
-	// determine if custom model paths were specified
-	if( !ROS_GET_PARAMETER("prototxt_path", prototxt_path) && !ROS_GET_PARAMETER("model_path", model_path) )
-	{
-		// without custom model, use one of the built-in pretrained models
-		ROS_GET_PARAMETER_OR("model_name", model_name, std::string("ssd-mobilenet-v2"));
-		use_model_name = true;
-	}
-
-	// set mean pixel and threshold defaults
 	float mean_pixel = 0.0f;
 	float threshold  = DETECTNET_DEFAULT_THRESHOLD;
-	
-	ROS_GET_PARAMETER_OR("mean_pixel_value", mean_pixel, mean_pixel); //private_nh.param<float>("mean_pixel_value", mean_pixel, mean_pixel);
-	ROS_GET_PARAMETER_OR("threshold", threshold, threshold);
 
-	// parse overlay flags
-	std::string overlay_str = "box,labels,conf";
-	ROS_GET_PARAMETER_OR("overlay_flags", overlay_str, overlay_str);
+	ROS_DECLARE_PARAMETER("model_name", model_name);
+	ROS_DECLARE_PARAMETER("model_path", model_path);
+	ROS_DECLARE_PARAMETER("prototxt_path", prototxt_path);
+	ROS_DECLARE_PARAMETER("class_labels_path", class_labels_path);
+	ROS_DECLARE_PARAMETER("input_blob", input_blob);
+	ROS_DECLARE_PARAMETER("output_cvg", output_cvg);
+	ROS_DECLARE_PARAMETER("output_bbox", output_bbox);
+	ROS_DECLARE_PARAMETER("overlay_flags", overlay_str);
+	ROS_DECLARE_PARAMETER("mean_pixel_value", mean_pixel);
+	ROS_DECLARE_PARAMETER("threshold", threshold);
+
+
+	/*
+	 * retrieve parameters
+	 */
+	ROS_GET_PARAMETER("model_name", model_name);
+	ROS_GET_PARAMETER("model_path", model_path);
+	ROS_GET_PARAMETER("prototxt_path", prototxt_path);
+	ROS_GET_PARAMETER("class_labels_path", class_labels_path);
+	ROS_GET_PARAMETER("input_blob", input_blob);
+	ROS_GET_PARAMETER("output_cvg", output_cvg);
+	ROS_GET_PARAMETER("output_bbox", output_bbox);
+	ROS_GET_PARAMETER("overlay_flags", overlay_str);
+	ROS_GET_PARAMETER("mean_pixel_value", mean_pixel);
+	ROS_GET_PARAMETER("threshold", threshold);
+
 	overlay_flags = detectNet::OverlayFlagsFromStr(overlay_str.c_str());
 
 
 	/*
 	 * load object detection network
 	 */
-	if( use_model_name )
+	if( model_path.size() > 0 )
+	{
+		// create network using custom model paths
+		net = detectNet::Create(prototxt_path.c_str(), model_path.c_str(), 
+						    mean_pixel, class_labels_path.c_str(), threshold, 
+						    input_blob.c_str(), output_cvg.c_str(), output_bbox.c_str());
+	}
+	else
 	{
 		// determine which built-in model was requested
 		detectNet::NetworkType model = detectNet::NetworkTypeFromStr(model_name.c_str());
@@ -212,24 +232,7 @@ int main(int argc, char **argv)
 		}
 
 		// create network using the built-in model
-		net = detectNet::Create(model);
-	}
-	else
-	{
-		// get input/output layer names
-		std::string input_blob = DETECTNET_DEFAULT_INPUT;
-		std::string output_cvg = DETECTNET_DEFAULT_COVERAGE;
-		std::string output_box = DETECTNET_DEFAULT_BBOX;
-
-		ROS_GET_PARAMETER_OR("input_blob", input_blob, input_blob);
-		ROS_GET_PARAMETER_OR("output_cvg", output_cvg, output_cvg);
-		ROS_GET_PARAMETER_OR("output_bbox", output_box, output_box);
-
-		// get the class labels path (optional)
-		ROS_GET_PARAMETER("class_labels_path", class_labels_path);
-
-		// create network using custom model paths
-		net = detectNet::Create(prototxt_path.c_str(), model_path.c_str(), mean_pixel, class_labels_path.c_str(), threshold, input_blob.c_str(), output_cvg.c_str(), output_box.c_str());
+		net = detectNet::Create(model, threshold);
 	}
 
 	if( !net )
@@ -258,6 +261,8 @@ int main(int argc, char **argv)
 
 	// create the key on the param server
 	std::string class_key = std::string("class_labels_") + std::to_string(model_hash);
+
+	ROS_DECLARE_PARAMETER(class_key, class_descriptions);
 	ROS_SET_PARAMETER(class_key, class_descriptions);
 		
 	// populate the vision info msg
@@ -272,7 +277,7 @@ int main(int argc, char **argv)
 
 
 	/*
-	 * create an image converter object
+	 * create image converter objects
 	 */
 	input_cvt = new imageConverter();
 	overlay_cvt = new imageConverter();
