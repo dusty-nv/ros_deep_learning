@@ -1,0 +1,14 @@
+<launch>
+	<arg name="output" default="display://0"/>
+	<arg name="output_codec" default="unknown"/>
+	<arg name="output_bitrate" default="0"/>
+	<arg name="topic"/>
+
+	<node pkg="ros_deep_learning" type="video_output" name="video_output" output="screen">
+		<remap from="/video_output/image_in" to="$(arg topic)"/>
+		<param name="resource" value="$(arg output)"/>
+		<param name="codec" value="$(arg output_codec)"/>
+		<param name="bitrate" value="$(arg output_bitrate)"/>
+	</node>
+
+</launch>

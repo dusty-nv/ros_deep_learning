@@ -1,4 +1,30 @@
 <launch>
-	<arg name="input" value="/dev/video1" />
-	<node pkg="ros_deep_learning" exec="video_source" name="my_camera" args="$(arg input)" output="screen" />
+
+	<!-- VIDEO SOURCE -->
+	<arg name="input" default="csi://0"/>
+	<arg name="input_width" default="0"/>
+	<arg name="input_height" default="0"/>
+	<arg name="input_codec" default="unknown"/>
+	<arg name="input_loop" default="0"/>
+
+	<include file="$(find ros_deep_learning)/launch/video_source.ros1.launch">
+		<arg name="input" value="$(arg input)"/>
+		<arg name="input_width" value="$(arg input_width)"/>
+		<arg name="input_height" value="$(arg input_height)"/>
+		<arg name="input_codec" value="$(arg input_codec)"/>
+		<arg name="input_loop" value="$(arg input_loop)"/>
+	</include>
+
+	<!-- VIDEO OUTPUT -->
+	<arg name="output" default="display://0"/>
+	<arg name="output_codec" default="unknown"/>
+	<arg name="output_bitrate" default="0"/>
+
+	<include file="$(find ros_deep_learning)/launch/video_output.ros1.launch">
+		<arg name="topic" value="/video_source/raw"/>
+		<arg name="output" value="$(arg output)"/>
+		<arg name="output_codec" value="$(arg output_codec)"/>
+		<arg name="output_bitrate" value="$(arg output_bitrate)"/>
+	</include>
+
 </launch>
