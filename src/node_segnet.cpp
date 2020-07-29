@@ -201,6 +201,13 @@ int main(int argc, char **argv)
 	overlay_filter = segNet::FilterModeFromStr(overlay_filter_str.c_str(), segNet::FILTER_LINEAR);
 	mask_filter    = segNet::FilterModeFromStr(mask_filter_str.c_str(), segNet::FILTER_LINEAR);
 
+	// input and output blob for SegNet model
+	std::string input_blob = SEGNET_DEFAULT_INPUT;
+	std::string output_blob = SEGNET_DEFAULT_OUTPUT;
+
+	private_nh.param<std::string>("input_blob", input_blob, input_blob);
+	private_nh.param<std::string>("output_blob", output_blob, output_blob);
+
 
 	/*
 	 * load segmentation network
@@ -225,7 +232,7 @@ int main(int argc, char **argv)
 		private_nh.getParam("class_labels_path", class_labels_path);
 
 		// create network using custom model paths
-		net = segNet::Create(prototxt_path.c_str(), model_path.c_str(), class_labels_path.c_str(), class_colors_path.c_str());
+		net = segNet::Create(prototxt_path.c_str(), model_path.c_str(), class_labels_path.c_str(), class_colors_path.c_str(), input_blob.c_str(), output_blob.c_str());
 	}
 
 	if( !net )

@@ -119,7 +119,14 @@ int main(int argc, char **argv)
 		use_model_name = true;
 	}
 
-	
+	// input and output blob for ImageNet model
+	std::string input_blob = IMAGENET_DEFAULT_INPUT;
+	std::string output_blob = IMAGENET_DEFAULT_OUTPUT;
+
+	private_nh.param<std::string>("input_blob", input_blob, input_blob);
+	private_nh.param<std::string>("output_blob", output_blob, output_blob);
+
+
 	/*
 	 * load image recognition network
 	 */
@@ -140,7 +147,7 @@ int main(int argc, char **argv)
 	else
 	{
 		// create network using custom model paths
-		net = imageNet::Create(prototxt_path.c_str(), model_path.c_str(), NULL, class_labels_path.c_str());
+		net = imageNet::Create(prototxt_path.c_str(), model_path.c_str(), NULL, class_labels_path.c_str(), input_blob.c_str(), output_blob.c_str());
 	}
 
 	if( !net )
