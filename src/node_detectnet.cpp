@@ -152,6 +152,15 @@ int main(int argc, char **argv)
 	private_nh.param<float>("mean_pixel_value", mean_pixel, mean_pixel);
 	private_nh.param<float>("threshold", threshold, threshold);
 
+	// input and output blob for DetectNet model
+	std::string input_blob = DETECTNET_DEFAULT_INPUT;
+	std::string output_cvg = DETECTNET_DEFAULT_COVERAGE;
+	std::string output_bbox = DETECTNET_DEFAULT_BBOX;
+
+	private_nh.param<std::string>("input_blob", input_blob, input_blob);
+	private_nh.param<std::string>("output_cvg", output_cvg, output_cvg);
+	private_nh.param<std::string>("output_bbox", output_bbox, output_bbox);
+
 
 	/*
 	 * load object detection network
@@ -176,7 +185,7 @@ int main(int argc, char **argv)
 		private_nh.getParam("class_labels_path", class_labels_path);
 
 		// create network using custom model paths
-		net = detectNet::Create(prototxt_path.c_str(), model_path.c_str(), mean_pixel, class_labels_path.c_str(), threshold);
+		net = detectNet::Create(prototxt_path.c_str(), model_path.c_str(), mean_pixel, class_labels_path.c_str(), threshold, input_blob.c_str(), output_cvg.c_str(), output_bbox.c_str());
 	}
 
 	if( !net )
