@@ -5,11 +5,27 @@
 
 	<!-- DETECTNET -->
 	<arg name="model_name" default="ssd-mobilenet-v2"/>
+	<arg name="model_path" default=""/>
+	<arg name="prototxt_path" default=""/>
+	<arg name="class_labels_path" default=""/>
+	<arg name="input_blob" default=""/>
+	<arg name="output_cvg" default=""/>
+	<arg name="output_bbox" default=""/>
+	<arg name="overlay_flags" default="box,labels,conf"/>
+	<arg name="mean_pixel_value" default="0.0"/>
 	<arg name="threshold" default="0.5"/>
 
 	<node pkg="ros_deep_learning" exec="detectnet" output="screen">
 		<remap from="/detectnet/image_in" to="/video_source/raw"/>
 		<param name="model_name" value="$(var model_name)"/>
+		<param name="model_path" value="$(var model_path)"/>
+		<param name="prototxt_path" value="$(var prototxt_path)"/>
+		<param name="class_labels_path" value="$(var class_labels_path)"/>
+		<param name="input_blob" value="$(var input_blob)"/>
+		<param name="output_cvg" value="$(var output_cvg)"/>
+		<param name="output_bbox" value="$(var output_bbox)"/>
+		<param name="overlay_flags" value="$(var overlay_flags)"/>
+		<param name="mean_pixel_value" value="$(var mean_pixel_value)"/>
 		<param name="threshold" value="$(var threshold)"/>
 	</node>
 

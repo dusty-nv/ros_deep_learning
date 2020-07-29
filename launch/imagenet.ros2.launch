@@ -5,10 +5,20 @@
 
 	<!-- IMAGENET -->
 	<arg name="model_name" default="googlenet"/>
+	<arg name="model_path" default=""/>
+	<arg name="prototxt_path" default=""/>
+	<arg name="class_labels_path" default=""/>
+	<arg name="input_blob" default=""/>
+	<arg name="output_blob" default=""/>
 
 	<node pkg="ros_deep_learning" exec="imagenet" output="screen">
 		<remap from="/imagenet/image_in" to="/video_source/raw"/>
 		<param name="model_name" value="$(var model_name)"/>
+		<param name="model_path" value="$(var model_path)"/>
+		<param name="prototxt_path" value="$(var prototxt_path)"/>
+		<param name="class_labels_path" value="$(var class_labels_path)"/>
+		<param name="input_blob" value="$(var input_blob)"/>
+		<param name="output_blob" value="$(var output_blob)"/>
 	</node>
 
 	<!-- VIDEO OUTPUT -->

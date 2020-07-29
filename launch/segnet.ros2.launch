@@ -5,10 +5,28 @@
 
 	<!-- SEGNET -->
 	<arg name="model_name" default="fcn-resnet18-mhp-512x320"/>
+	<arg name="model_path" default=""/>
+	<arg name="prototxt_path" default=""/>
+	<arg name="class_labels_path" default=""/>
+	<arg name="class_colors_path" default=""/>
+	<arg name="input_blob" default=""/>
+	<arg name="output_blob" default=""/>
+	<arg name="mask_filter" default="linear"/>
+	<arg name="overlay_filter" default="linear"/>
+	<arg name="overlay_alpha" default="180.0"/>
 
 	<node pkg="ros_deep_learning" exec="segnet" output="screen">
 		<remap from="/segnet/image_in" to="/video_source/raw"/>
 		<param name="model_name" value="$(var model_name)"/>
+		<param name="model_path" value="$(var model_path)"/>
+		<param name="prototxt_path" value="$(var prototxt_path)"/>
+		<param name="class_labels_path" value="$(var class_labels_path)"/>
+		<param name="class_colors_path" value="$(var class_colors_path)"/>
+		<param name="input_blob" value="$(var input_blob)"/>
+		<param name="output_blob" value="$(var output_blob)"/>
+		<param name="mask_filter" value="$(var mask_filter)"/>
+		<param name="overlay_filter" value="$(var overlay_filter)"/>
+		<param name="overlay_alpha" value="$(var overlay_alpha)"/>
 	</node>
 
 	<!-- VIDEO OUTPUT -->
