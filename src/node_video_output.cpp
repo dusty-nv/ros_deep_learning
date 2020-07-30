@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 	 */
 	ROS_GET_PARAMETER("resource", resource_str);
 	ROS_GET_PARAMETER("codec", codec_str);
-	ROS_GET_PARAMETER("bitRate", video_bitrate);
+	ROS_GET_PARAMETER("bitrate", video_bitrate);
 
 	if( resource_str.size() == 0 )
 	{
