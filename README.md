@@ -1,4 +1,4 @@
-# ros_deep_learning
+# Deep Learning Nodes for ROS
 This repo contains deep learning inference nodes and camera/video streaming nodes for ROS/ROS2 with support for Jetson Nano/TX1/TX2/Xavier NX/AGX Xavier and TensorRT.
 
 The nodes use the image recognition, object detection, and semantic segmentation DNN's from the [`jetson-inference`](https://github.com/dusty-nv/jetson-inference) library and NVIDIA [Hello AI World](https://developer.nvidia.com/embedded/twodaystoademo) tutorial, which come with several built-in pretrained networks for classification, detection, and segmentation and the ability to load customized user-trained models.
@@ -18,7 +18,7 @@ ROS Melodic and ROS2 Eloquent are supported, and the latest version of JetPack i
 
 * [Installation](#installation)
 	* [jetson-inference](#jetson-inference)
-	* [ROS/ROS2](#ros-ros2)
+	* [ROS/ROS2](#rosros2)
 	* [ros_deep_learning](#ros_deep_learning-1)
 * [Testing](#testing)
 	* [Video Viewer](#video-viewer)
@@ -26,21 +26,21 @@ ROS Melodic and ROS2 Eloquent are supported, and the latest version of JetPack i
 	* [detectnet Node](#detectnet-node)
 	* [segnet Node](#segnet-node)
 * [Topics & Parameters](#topics-messages)
-	* [imagenet Node](#imagenet-node-2)
-	* [detectnet Node](#detectnet-node-2)
-	* [segnet Node](#segnet-node-2) 
+	* [imagenet Node](#imagenet-node-1)
+	* [detectnet Node](#detectnet-node-1)
+	* [segnet Node](#segnet-node-1) 
 	* [video_source Node](#video-source-node)
 	* [video_output Node](#video-output-node)
 
 ## Installation
 
-First, install the latest [JetPack](https://developer.nvidia.com/embedded/jetpack) on your Jetson.
+First, install the latest version of [JetPack](https://developer.nvidia.com/embedded/jetpack) on your Jetson.
 
-Then, follow the installation steps below to install the needed components on your Jetson:
+Then, follow the steps below to install the needed components on your Jetson.
 
 ### jetson-inference
 
-These ROS nodes use the DNN objects from the [`jetson-inference`](https://github.com/dusty-nv/jetson-inference) project (aka Hello AI World).  To build and install it, see [this page](https://github.com/dusty-nv/jetson-inference/blob/master/docs/building-repo-2.md) or run the commands below:
+These ROS nodes use the DNN objects from the [`jetson-inference`](https://github.com/dusty-nv/jetson-inference) project (aka Hello AI World).  To build and install jetson-inference, see [this page](https://github.com/dusty-nv/jetson-inference/blob/master/docs/building-repo-2.md) or run the commands below:
 
 ```bash
 $ cd ~
@@ -71,7 +71,7 @@ Depending on which version of ROS you're using, install some additional dependen
 $ sudo apt-get install ros-melodic-image-transport ros-melodic-vision-msgs
 ```
 
-Then, create a Catkin workspace (`~/ros_workspace`) using these steps:  
+For ROS Melodic, create a Catkin workspace (`~/ros_workspace`) using these steps:  
 http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment#Create_a_ROS_Workspace
 
 #### ROS Eloquent
@@ -81,11 +81,8 @@ $ sudo apt-get install ros-eloquent-vision-msgs \
                        ros-eloquent-launch-yaml \
                        python3-colcon-common-extensions
 ```
-$ sudo apt-get install ros-kinetic-image-publisher
-$ sudo apt-get install ros-kinetic-vision-msgs
-```
 
-Then create a workspace for ROS (`~/ros_workspace`):
+For ROS Eloquent, create a workspace (`~/ros_workspace`) to use:
 
 ```bash
 $ mkdir -p ~/ros2_example_ws/src
@@ -93,14 +90,14 @@ $ mkdir -p ~/ros2_example_ws/src
 
 ### ros_deep_learning
 
-Next, navigate into your ROS workspace and clone and build `ros_deep_learning`:
+Next, navigate into your ROS workspace's `src` directory and clone `ros_deep_learning`:
 
 ```bash
 $ cd ~/ros_workspace/src
 $ git clone https://github.com/dusty-nv/ros_deep_learning
 ```
 
-If you are using ROS Melodic, use `catkin_make`.  If you are using ROS2 Eloquent, use `colcon build`:
+Then build it - if you are using ROS Melodic, use `catkin_make`.  If you are using ROS2 Eloquent, use `colcon build`:
 
 ```bash
 $ cd ~/ros_workspace/
@@ -114,31 +111,27 @@ $ colcon build
 $ source install/local_setup.bash 
 ```
 
-The nodes should now be built and ready to use.  Remember to source the overlay so that ROS can find the nodes.
+The nodes should now be built and ready to use.  Remember to source the overlay as shown above so that ROS can find the nodes.
 
 ## Testing
 
-Before proceeding, if you are using ROS Melodic make sure that `roscore` is running first:
+Before proceeding, if you're using ROS Melodic make sure that `roscore` is running first:
 
 ```bash
 $ roscore
 ```
 
-If you are using ROS2, running the core service is no longer required.
+If you're using ROS2, running the core service is no longer required.
 
 ### Video Viewer
 
 First, it's recommended to test that you can stream a video feed using the [`video_source`](#video-source-node) and [`video_output`](#video-output-node) nodes.  See [Camera Streaming & Multimedia](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md) for valid input/output streams, and substitute your desired `input` and `output` argument below.  For example, you can use video files for the input or output, or use V4L2 cameras instead of MIPI CSI cameras.  You can also use RTP/RTSP streams over the network.
 
-#### ROS Melodic
-
 ```bash
+# ROS Melodic
 $ roslaunch ros_deep_learning video_viewer.ros1.launch input:=csi://0 output:=display://0
-```
 
-#### ROS2 Eloquent
-
-```bash
+# ROS2 Eloquent
 $ ros2 ros_deep_learning video_viewer.ros2.launch input:=csi://0 output:=display://0
 ```
 
@@ -146,49 +139,39 @@ $ ros2 ros_deep_learning video_viewer.ros2.launch input:=csi://0 output:=display
 
 You can launch a classification demo with the following commands - substitute your desired camera or video path to the `input` argument below (see [here](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md) for valid input/output streams).  
 
-Note that the `imagenet` node also publishes classification metadata on the `imagenet/classification` topic in a [`vision_msgs/Classification2D`](http://docs.ros.org/melodic/api/vision_msgs/html/msg/Classification2D.html) message -- see the [Topics & Parameters](#topics-parameters) section below for more info.
-
-#### ROS Melodic
+Note that the `imagenet` node also publishes classification metadata on the `imagenet/classification` topic in a [`vision_msgs/Detection2DArray`](http://docs.ros.org/melodic/api/vision_msgs/html/msg/Detection2DArray.html) message -- see the [Topics & Parameters](#imagenet-node-1) section below for more info.
 
 ```bash
+# ROS Melodic
 $ roslaunch ros_deep_learning imagenet.ros1.launch input:=csi://0 output:=display://0
-```
 
-#### ROS2 Eloquent
-
-```bash
+# ROS2 Eloquent
 $ ros2 ros_deep_learning imagenet.ros2.launch input:=csi://0 output:=display://0
 ```
 
 ### detectnet Node
 
-To launch an object detection demo, substitute your desired camera or video path to the `input` argument below (see [here](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md) for valid input/output streams).  Note that the `detectnet` node also publishes the metadata in a ``vision_msgs/Detection2DArray` message.
+To launch an object detection demo, substitute your desired camera or video path to the `input` argument below (see [here](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md) for valid input/output streams).  Note that the `detectnet` node also publishes the metadata in a `vision_msgs/Detection2DArray` message -- see the [Topics & Parameters](#detectnet-node-1) section below for more info.
 
-#### ROS Melodic
+#### 
 
 ```bash
+# ROS Melodic
 $ roslaunch ros_deep_learning detectnet.ros1.launch input:=csi://0 output:=display://0
-```
 
-#### ROS2 Eloquent
-
-```bash
+# ROS2 Eloquent
 $ ros2 ros_deep_learning detectnet.ros2.launch input:=csi://0 output:=display://0
 ```
 
 ### segnet Node
 
-To launch a semantic segmentation demo, substitute your desired camera or video path to the `input` argument below (see [here](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md) for valid input/output streams).  Note that the `segnet` node also publishes raw segmentation results to the `segnet/class_mask` topic.
-
-#### ROS Melodic
+To launch a semantic segmentation demo, substitute your desired camera or video path to the `input` argument below (see [here](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md) for valid input/output streams).  Note that the `segnet` node also publishes raw segmentation results to the `segnet/class_mask` topic -- see the [Topics & Parameters](#segnet-node-1) section below for more info.
 
 ```bash
+# ROS Melodic
 $ roslaunch ros_deep_learning segnet.ros1.launch input:=csi://0 output:=display://0
-```
 
-#### ROS2 Eloquent
-
-```bash
+# ROS2 Eloquent
 $ ros2 ros_deep_learning segnet.ros2.launch input:=csi://0 output:=display://0
 ```
 
@@ -198,16 +181,12 @@ Below are the message topics and parameters that each node implements.
 
 ### imagenet Node
 
-#### Topics
-
 | Topic Name     |   I/O  | Message Type                                                                                                 | Description                                           |
 |----------------|:------:|--------------------------------------------------------------------------------------------------------------|-------------------------------------------------------|
 | image_in       |  Input | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)                       | Raw input image                                       |
 | classification | Output | [`vision_msgs/Classification2D`](http://docs.ros.org/melodic/api/vision_msgs/html/msg/Classification2D.html) | Classification results (class ID + confidence)        |
 | vision_info    | Output | [`vision_msgs/VisionInfo`](http://docs.ros.org/melodic/api/vision_msgs/html/msg/VisionInfo.html)             | Vision metadata (class labels parameter list name)         |
 | overlay        | Output | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)                       | Input image overlayed with the classification results |
-
-#### Parameters
 
 | Parameter Name    |       Type       |    Default    | Description                                                                                                        |
 |-------------------|:----------------:|:-------------:|--------------------------------------------------------------------------------------------------------------------|
@@ -221,16 +200,12 @@ Below are the message topics and parameters that each node implements.
 
 ### detectnet Node
 
-#### Topics
-
 | Topic Name  |   I/O  | Message Type                                                                                                 | Description                                                |
 |-------------|:------:|--------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
 | image_in    |  Input | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)                       | Raw input image                                            |
 | detections  | Output | [`vision_msgs/Detection2DArray`](http://docs.ros.org/melodic/api/vision_msgs/html/msg/Detection2DArray.html) | Detection results (bounding boxes, class IDs, confidences) |
 | vision_info | Output | [`vision_msgs/VisionInfo`](http://docs.ros.org/melodic/api/vision_msgs/html/msg/VisionInfo.html)             | Vision metadata (class labels parameter list name)         |
 | overlay     | Output | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)                       | Input image overlayed with the detection results      |
-
-#### Parameters
 
 | Parameter Name    |       Type       |        Default       | Description                                                                                                        |
 |-------------------|:----------------:|:--------------------:|--------------------------------------------------------------------------------------------------------------------|
@@ -248,8 +223,6 @@ Below are the message topics and parameters that each node implements.
 
 ### segnet Node
 
-#### Topics
-
 | Topic Name  |   I/O  | Message Type                                                                                     | Description                                              |
 |-------------|:------:|--------------------------------------------------------------------------------------------------|----------------------------------------------------------|
 | image_in    |  Input | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)           | Raw input image                                          |
@@ -257,8 +230,6 @@ Below are the message topics and parameters that each node implements.
 | overlay     | Output | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)           | Input image overlayed with the classification results    |
 | color_mask  | Output | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)           | Colorized segmentation class mask out                    |
 | class_mask  | Output | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)           | 8-bit single-channel image where each pixel is a classID |
-
-#### Parameters
 
 | Parameter Name    |       Type       |                Default               | Description                                                                                                           |
 |-------------------|:----------------:|:------------------------------------:|-----------------------------------------------------------------------------------------------------------------------|
@@ -276,13 +247,9 @@ Below are the message topics and parameters that each node implements.
 
 ### video_source Node
 
-#### Topics
-
 | Topic Name |   I/O  | Message Type                                                                           | Description             |
 |------------|:------:|----------------------------------------------------------------------------------------|-------------------------|
 | raw        | Output | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html) | Raw output image (BGR8) |
-
-#### Parameters
 
 | Parameter Name |   Type   |   Default   | Description                                                                                                                                                               |
 |----------------|:--------:|:-----------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -295,13 +262,9 @@ Below are the message topics and parameters that each node implements.
 
 ### video_output Node
 
-#### Topics
-
 | Topic Name |  I/O  | Message Type                                                                           | Description     |
 |------------|:-----:|----------------------------------------------------------------------------------------|-----------------|
 | image_in   | Input | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html) | Raw input image |
-
-#### Parameters
 
 | Parameter Name |   Type   |     Default     | Description                                                                                                                                                   |
 |----------------|:--------:|:---------------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
