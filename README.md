@@ -251,7 +251,7 @@ Below are the message topics and parameters that each node implements.
 |------------|:------:|----------------------------------------------------------------------------------------|-------------------------|
 | raw        | Output | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html) | Raw output image (BGR8) |
 
-| Parameter Name |   Type   |   Default   | Description                                                                                                                                                               |
+| Parameter      |   Type   |   Default   | Description                                                                                                                                                               |
 |----------------|:--------:|:-----------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | resource       | `string` | `"csi://0"` | Input stream URI (see [here](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md#input-streams) for valid protocols)                           |
 | codec          | `string` |     `""`    | Manually specify codec for compressed streams (see [here](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md#input-options) for valid values) |
@@ -266,7 +266,7 @@ Below are the message topics and parameters that each node implements.
 |------------|:-----:|----------------------------------------------------------------------------------------|-----------------|
 | image_in   | Input | [`sensor_msgs/Image`](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html) | Raw input image |
 
-| Parameter Name |   Type   |     Default     | Description                                                                                                                                                   |
+| Parameter      |   Type   |     Default     | Description                                                                                                                                                   |
 |----------------|:--------:|:---------------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | resource       | `string` | `"display://0"` | Output stream URI (see [here](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md#output-streams) for valid protocols)             |
 | codec          | `string` |     `"h264"`    | Codec used for compressed streams (see [here](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md#input-options) for valid values) |
