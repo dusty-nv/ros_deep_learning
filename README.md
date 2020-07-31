@@ -132,7 +132,7 @@ First, it's recommended to test that you can stream a video feed using the [`vid
 $ roslaunch ros_deep_learning video_viewer.ros1.launch input:=csi://0 output:=display://0
 
 # ROS2 Eloquent
-$ ros2 ros_deep_learning video_viewer.ros2.launch input:=csi://0 output:=display://0
+$ ros2 launch ros_deep_learning video_viewer.ros2.launch input:=csi://0 output:=display://0
 ```
 
 ### imagenet Node
@@ -146,7 +146,7 @@ Note that the `imagenet` node also publishes classification metadata on the `ima
 $ roslaunch ros_deep_learning imagenet.ros1.launch input:=csi://0 output:=display://0
 
 # ROS2 Eloquent
-$ ros2 ros_deep_learning imagenet.ros2.launch input:=csi://0 output:=display://0
+$ ros2 launch ros_deep_learning imagenet.ros2.launch input:=csi://0 output:=display://0
 ```
 
 ### detectnet Node
@@ -160,7 +160,7 @@ To launch an object detection demo, substitute your desired camera or video path
 $ roslaunch ros_deep_learning detectnet.ros1.launch input:=csi://0 output:=display://0
 
 # ROS2 Eloquent
-$ ros2 ros_deep_learning detectnet.ros2.launch input:=csi://0 output:=display://0
+$ ros2 launch ros_deep_learning detectnet.ros2.launch input:=csi://0 output:=display://0
 ```
 
 ### segnet Node
@@ -172,7 +172,7 @@ To launch a semantic segmentation demo, substitute your desired camera or video 
 $ roslaunch ros_deep_learning segnet.ros1.launch input:=csi://0 output:=display://0
 
 # ROS2 Eloquent
-$ ros2 ros_deep_learning segnet.ros2.launch input:=csi://0 output:=display://0
+$ ros2 launch ros_deep_learning segnet.ros2.launch input:=csi://0 output:=display://0
 ```
 
 ## Topics & Parameters
