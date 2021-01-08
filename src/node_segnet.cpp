@@ -187,6 +187,8 @@ int main(int argc, char **argv)
 
 	float overlay_alpha = 180.0f;
 
+	int subscriber_queue_length = 5;
+
 	ROS_DECLARE_PARAMETER("model_name", model_name);
 	ROS_DECLARE_PARAMETER("model_path", model_path);
 	ROS_DECLARE_PARAMETER("prototxt_path", prototxt_path);
@@ -197,6 +199,7 @@ int main(int argc, char **argv)
 	ROS_DECLARE_PARAMETER("mask_filter", mask_filter_str);
 	ROS_DECLARE_PARAMETER("overlay_filter", overlay_filter_str);
 	ROS_DECLARE_PARAMETER("overlay_alpha", overlay_alpha);
+	ROS_DECLARE_PARAMETER("subscriber_queue_length", subscriber_queue_length);
 	
 	/*
 	 * retrieve parameters
@@ -211,6 +214,7 @@ int main(int argc, char **argv)
 	ROS_GET_PARAMETER("mask_filter", mask_filter_str);
 	ROS_GET_PARAMETER("overlay_filter", overlay_filter_str);
 	ROS_GET_PARAMETER("overlay_alpha", overlay_alpha);
+	ROS_GET_PARAMETER("subscriber_queue_length", subscriber_queue_length);
 
 	overlay_filter = segNet::FilterModeFromStr(overlay_filter_str.c_str(), segNet::FILTER_LINEAR);
 	mask_filter    = segNet::FilterModeFromStr(mask_filter_str.c_str(), segNet::FILTER_LINEAR);
@@ -318,7 +322,7 @@ int main(int argc, char **argv)
 	/*
 	 * subscribe to image topic
 	 */
-	auto img_sub = ROS_CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
+	auto img_sub = ROS_CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", subscriber_queue_length, img_callback);
 
 	
 	/*
