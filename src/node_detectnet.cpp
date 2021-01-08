@@ -141,6 +141,10 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 			hyp.score = det->Confidence;
 
 			detMsg.results.push_back(hyp);
+
+			// add image header for detection traceability
+			detMsg.source_img.header = input->header;
+
 			msg.detections.push_back(detMsg);
 		}
 

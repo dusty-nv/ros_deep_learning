@@ -119,6 +119,9 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 		obj.id    = img_class;
 		obj.score = confidence;
 
+		// add image header for detection traceability
+		msg.source_img.header = input->header;
+
 		msg.results.push_back(obj);	// TODO optionally add source image to msg
 	
 		// populate timestamp in header field
