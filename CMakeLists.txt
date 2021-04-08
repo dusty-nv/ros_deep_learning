@@ -20,6 +20,7 @@ if( catkin_FOUND )
 		image_transport
 		roscpp
 		sensor_msgs
+		camera_info_manager
 		vision_msgs
 		std_msgs
 	)
