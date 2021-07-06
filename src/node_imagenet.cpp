@@ -116,7 +116,11 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 		vision_msgs::Classification2D msg;
 		vision_msgs::ObjectHypothesis obj;
 
-		obj.id    = img_class;
+	#if ROS_DISTRO >= ROS_FOXY
+		obj.class_id = img_class;
+	#else
+		obj.id = img_class;
+	#endif
 		obj.score = confidence;
 
 		msg.results.push_back(obj);	// TODO optionally add source image to msg

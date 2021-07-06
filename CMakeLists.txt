@@ -14,7 +14,7 @@ find_package(catkin QUIET)
 # detect ROS version
 string(TOUPPER $ENV{ROS_DISTRO} ROS_DISTRO)
 set(ROS_DISTRO "ROS_${ROS_DISTRO}")
-message("detected ${ROS_DISTRO}")
+message("detected ROS_DISTRO=${ROS_DISTRO}")
 
 if( catkin_FOUND )
 	message("detected ROS1 (catkin_make)")

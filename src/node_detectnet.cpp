@@ -137,9 +137,14 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 			// create classification hypothesis
 			vision_msgs::ObjectHypothesisWithPose hyp;
 			
+		#if ROS_DISTRO >= ROS_FOXY
+			hyp.hypothesis.class_id = det->ClassID;
+			hyp.hypothesis.score = det->Confidence;
+		#else
 			hyp.id = det->ClassID;
 			hyp.score = det->Confidence;
-
+		#endif
+		
 			detMsg.results.push_back(hyp);
 			msg.detections.push_back(detMsg);
 		}
