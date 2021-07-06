@@ -71,7 +71,12 @@ template<typename T> static void __ros_declare_parameter( ros::NodeHandle& nh, c
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
-#include <vision_msgs/msg/classification2_d.hpp>
+
+#if ROS_DISTRO == "foxy" || ROS_DISTRO == "galactic"
+	#include <vision_msgs/msg/classification2_d.hpp>
+#else
+	#include <vision_msgs/msg/classification2_d.hpp>
+
 #include <vision_msgs/msg/detection2_d_array.hpp>
 #include <vision_msgs/msg/vision_info.hpp>
 
