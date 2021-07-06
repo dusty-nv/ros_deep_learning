@@ -91,7 +91,11 @@ template<typename T> static void __ros_declare_parameter( ros::NodeHandle& nh, c
 
 namespace vision_msgs
 {
+#if ROS_DISTRO >= ROS_FOXY
+	typedef msg::Classification   Classification2D;
+#else
 	typedef msg::Classification2D Classification2D;
+#endif
 	typedef msg::Detection2D		Detection2D;
 	typedef msg::Detection2DArray Detection2DArray;
 	typedef msg::ObjectHypothesis ObjectHypothesis;
