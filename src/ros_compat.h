@@ -84,6 +84,7 @@ template<typename T> static void __ros_declare_parameter( ros::NodeHandle& nh, c
 	#include <vision_msgs/msg/classification.hpp>
 #else
 	#include <vision_msgs/msg/classification2_d.hpp>
+#endif
 
 #include <vision_msgs/msg/detection2_d_array.hpp>
 #include <vision_msgs/msg/vision_info.hpp>
