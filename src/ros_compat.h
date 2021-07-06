@@ -80,8 +80,8 @@ template<typename T> static void __ros_declare_parameter( ros::NodeHandle& nh, c
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
-#if ROS_DISTRO == ROS_FOXY || ROS_DISTRO == ROS_GALACTIC
-	#include <vision_msgs/msg/classification2_d.hpp>
+#if ROS_DISTRO >= ROS_FOXY
+	#include <vision_msgs/msg/classification.hpp>
 #else
 	#include <vision_msgs/msg/classification2_d.hpp>
 
