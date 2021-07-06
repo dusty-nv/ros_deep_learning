@@ -11,6 +11,10 @@ find_package(CUDA REQUIRED)
 # detect ROS1 vs ROS2
 find_package(catkin QUIET)
 
+# detect ROS version
+string(TOUPPER $ENV{ROS_DISTRO} ROS_DISTRO)
+set(ROS_DISTRO "ROS_${ROS_DISTRO}")
+
 if( catkin_FOUND )
 	message("detected ROS1 (catkin_make)")
 
@@ -31,7 +35,7 @@ if( catkin_FOUND )
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")	# enable c++11 (TensorRT requirement)
 	include_directories(${catkin_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS})
-	add_definitions(-DROS1 -DROS_DISTRO=$ENV{ROS_DISTRO})
+	add_definitions(-DROS1 -DROS_DISTRO=${ROS_VERSION})
 
 else()
 	find_package(ament_cmake QUIET)
@@ -48,7 +52,7 @@ else()
 
 		set(CMAKE_CXX_STANDARD 14)
 		include_directories(${CUDA_INCLUDE_DIRS})
-		add_definitions(-DROS2 -DROS_DISTRO=$ENV{ROS_DISTRO})
+		add_definitions(-DROS2 -DROS_DISTRO=${ROS_VERSION})
 
 	else()
 		message(FATAL_ERROR "could not find either ROS1 (catkin_make) or ROS2 (ament_cmake) packages")

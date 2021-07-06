@@ -23,6 +23,14 @@
 #ifndef __ROS_DEEP_LEARNING_COMPATABILITY_H_
 #define __ROS_DEEP_LEARNING_COMPATABILITY_H_
 
+#define ROS_KINETIC  0
+#define ROS_MELODIC  1
+#define ROS_NOETIC   2
+#define ROS_DASHING  3
+#define ROS_ELOQUENT 4
+#define ROS_FOXY     5
+#define ROS_GALACTIC 6
+
 #ifdef ROS1
 
 #include <ros/ros.h>
@@ -72,7 +80,7 @@ template<typename T> static void __ros_declare_parameter( ros::NodeHandle& nh, c
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
-#if ROS_DISTRO == "foxy" || ROS_DISTRO == "galactic"
+#if ROS_DISTRO == ROS_FOXY || ROS_DISTRO == ROS_GALACTIC
 	#include <vision_msgs/msg/classification2_d.hpp>
 #else
 	#include <vision_msgs/msg/classification2_d.hpp>
