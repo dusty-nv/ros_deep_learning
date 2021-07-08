@@ -1,15 +1,17 @@
 <launch>
 	<arg name="input" default="csi://0"/>
-	<arg name="input_width" default="0"/>
-	<arg name="input_height" default="0"/>
+	<arg name="input_width" default="800"/>
+	<arg name="input_height" default="600"/>
 	<arg name="input_codec" default="unknown"/>
 	<arg name="input_loop" default="0"/>
+	<arg name="framerate" default="30"/>
 
 	<node pkg="ros_deep_learning" type="video_source" name="video_source" output="screen">
 		<param name="resource" value="$(arg input)"/>
 		<param name="width" value="$(arg input_width)"/>
 		<param name="height" value="$(arg input_height)"/>
 		<param name="loop" value="$(arg input_loop)"/>
+		<param name="framerate" value="$(arg framerate)"/>
 	</node>
 
 </launch>
