@@ -29,8 +29,8 @@ ROS Melodic and ROS2 Eloquent are supported, and the latest version of JetPack i
 	* [imagenet Node](#imagenet-node-1)
 	* [detectnet Node](#detectnet-node-1)
 	* [segnet Node](#segnet-node-1) 
-	* [video_source Node](#video-source-node)
-	* [video_output Node](#video-output-node)
+	* [video_source Node](#video_source-node)
+	* [video_output Node](#video_output-node)
 
 ## Installation
 
@@ -259,7 +259,7 @@ Below are the message topics and parameters that each node implements.
 | height         |   `int`  |      0      | Manually specify desired height of stream (0 = stream default)                                                                                                            |
 | framerate      |   `int`  |      0      | Manually specify desired framerate of stream (0 = stream default)                                                                                                         |
 | loop           |   `int`  |      0      | For video files:  `0` = don't loop, `>0` = # of loops, `-1` = loop forever                                                                                                |
-
+| flip           | `string` |    `""`     | Set the flip method for MIPI CSI cameras (see [here](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md#input-options) for valid values)      |
 ### video_output Node
 
 | Topic Name |  I/O  | Message Type                                                                           | Description     |

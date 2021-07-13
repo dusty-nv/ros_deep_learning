@@ -87,7 +87,8 @@ int main(int argc, char **argv)
 
 	std::string resource_str;
 	std::string codec_str;
-
+	std::string flip_str;
+	
 	int video_width = video_options.width;
 	int video_height = video_options.height;
 
@@ -97,6 +98,7 @@ int main(int argc, char **argv)
 	ROS_DECLARE_PARAMETER("height", video_height);
 	ROS_DECLARE_PARAMETER("framerate", video_options.frameRate);
 	ROS_DECLARE_PARAMETER("loop", video_options.loop);
+	ROS_DECLARE_PARAMETER("flip", flip_str);
 	
 	/*
 	 * retrieve parameters
@@ -107,6 +109,7 @@ int main(int argc, char **argv)
 	ROS_GET_PARAMETER("height", video_height);
 	ROS_GET_PARAMETER("framerate", video_options.frameRate);
 	ROS_GET_PARAMETER("loop", video_options.loop);
+	ROS_GET_PARAMETER("flip", flip_str);
 	
 	if( resource_str.size() == 0 )
 	{
@@ -117,6 +120,9 @@ int main(int argc, char **argv)
 	if( codec_str.size() != 0 )
 		video_options.codec = videoOptions::CodecFromStr(codec_str.c_str());
 
+	if( flip_str.size() != 0 )
+		video_options.flipMethod = videoOptions::FlipMethodFromStr(flip_str.c_str());
+	
 	video_options.width = video_width;
 	video_options.height = video_height;
 
