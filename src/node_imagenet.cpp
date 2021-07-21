@@ -116,7 +116,7 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 		vision_msgs::Classification2D msg;
 		vision_msgs::ObjectHypothesis obj;
 
-	#if ROS_DISTRO >= ROS_FOXY
+	#if ROS_DISTRO >= ROS_GALACTIC
 		obj.class_id = img_class;
 	#else
 		obj.id = img_class;
