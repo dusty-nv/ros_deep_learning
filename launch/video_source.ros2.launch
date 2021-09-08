@@ -10,6 +10,7 @@
 		<param name="width" value="$(var input_width)"/>
 		<param name="height" value="$(var input_height)"/>
 		<param name="loop" value="$(var input_loop)"/>
+		<param name="rtsp_latency" value="$(var input_latency)"/>
 	</node>
 
 </launch>
