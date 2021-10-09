@@ -16,6 +16,8 @@ string(TOUPPER $ENV{ROS_DISTRO} ROS_DISTRO)
 set(ROS_DISTRO "ROS_${ROS_DISTRO}")
 message("detected ROS_DISTRO=${ROS_DISTRO}")
 
+link_directories(/usr/lib/aarch64-linux-gnu/tegra)
+
 if( catkin_FOUND )
 	message("detected ROS1 (catkin_make)")
 	
