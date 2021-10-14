@@ -85,7 +85,7 @@ $ sudo apt-get install ros-eloquent-vision-msgs \
 For ROS Eloquent, create a workspace (`~/ros_workspace`) to use:
 
 ```bash
-$ mkdir -p ~/ros2_example_ws/src
+$ mkdir -p ~/ros_workspace/src
 ```
 
 ### ros_deep_learning
