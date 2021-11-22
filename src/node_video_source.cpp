@@ -24,13 +24,20 @@
 #include "image_converter.h"
 
 #include <jetson-utils/videoSource.h>
-
-
+#include <sensor_msgs/msg/camera_info.hpp>
 
 // globals	
 videoSource* stream = NULL;
 imageConverter* image_cvt = NULL;
 Publisher<sensor_msgs::Image> image_pub = NULL;
+Publisher<sensor_msgs::msg::CameraInfo> camera_info_pub = NULL;
+std::string camera_info_dm = "";
+std::vector<double> camera_info_d;
+std::array<double, 9> camera_info_k;
+std::array<double, 9> camera_info_r;
+std::array<double, 12> camera_info_p;
+int camera_info_bx = 0;
+int camera_info_by = 0;
 
 
 // aquire and publish camera frame
@@ -54,6 +61,7 @@ bool aquireFrame()
 
 	// populate the message
 	sensor_msgs::Image msg;
+	sensor_msgs::msg::CameraInfo msg_info;
 
 	if( !image_cvt->Convert(msg, imageConverter::ROSOutputFormat, nextFrame) )
 	{
@@ -61,11 +69,23 @@ bool aquireFrame()
 		return false;
 	}
 
+	msg_info.height = msg.height;
+	msg_info.width = msg.width;
+	msg_info.distortion_model = camera_info_dm;
+	msg_info.d = camera_info_d;
+	msg_info.k = camera_info_k;
+	msg_info.r = camera_info_r;
+	msg_info.p = camera_info_p;
+	msg_info.binning_x = camera_info_bx;
+	msg_info.binning_y = camera_info_by;
+
 	// populate timestamp in header field
 	msg.header.stamp = ROS_TIME_NOW();
+	msg_info.header.stamp = msg.header.stamp;
 
 	// publish the message
 	image_pub->publish(msg);
+	camera_info_pub->publish(msg_info);
 	ROS_DEBUG("published %ux%u video frame", stream->GetWidth(), stream->GetHeight());
 	
 	return true;
@@ -92,6 +112,10 @@ int main(int argc, char **argv)
 	int video_width = video_options.width;
 	int video_height = video_options.height;
 	int rtsp_latency = video_options.rtspLatency;
+
+	std::vector<double> temp_k;
+	std::vector<double> temp_r;
+	std::vector<double> temp_p;
 	
 	ROS_DECLARE_PARAMETER("resource", resource_str);
 	ROS_DECLARE_PARAMETER("codec", codec_str);
@@ -101,7 +125,13 @@ int main(int argc, char **argv)
 	ROS_DECLARE_PARAMETER("loop", video_options.loop);
 	ROS_DECLARE_PARAMETER("flip", flip_str);
 	ROS_DECLARE_PARAMETER("rtsp_latency", rtsp_latency);
-	
+	ROS_DECLARE_PARAMETER("camera_info.distortion_model", camera_info_dm);
+	ROS_DECLARE_PARAMETER("camera_info.d", camera_info_d);
+	ROS_DECLARE_PARAMETER("camera_info.k", temp_k);
+	ROS_DECLARE_PARAMETER("camera_info.r", temp_r);
+	ROS_DECLARE_PARAMETER("camera_info.p", temp_p);
+	ROS_DECLARE_PARAMETER("camera_info.binning_x", camera_info_bx);
+	ROS_DECLARE_PARAMETER("camera_info.binning_y", camera_info_by);
 	/*
 	 * retrieve parameters
 	 */
@@ -113,6 +143,17 @@ int main(int argc, char **argv)
 	ROS_GET_PARAMETER("loop", video_options.loop);
 	ROS_GET_PARAMETER("flip", flip_str);
 	ROS_GET_PARAMETER("rtsp_latency", rtsp_latency);
+	ROS_GET_PARAMETER("camera_info.distortion_model", camera_info_dm);
+	ROS_GET_PARAMETER("camera_info.d", camera_info_d);
+	ROS_GET_PARAMETER("camera_info.k", temp_k);
+	ROS_GET_PARAMETER("camera_info.r", temp_r);
+	ROS_GET_PARAMETER("camera_info.p", temp_p);
+	ROS_GET_PARAMETER("camera_info.binning_x", camera_info_bx);
+	ROS_GET_PARAMETER("camera_info.binning_y", camera_info_by);
+
+	std::copy(temp_k.begin(),temp_k.end(),camera_info_k.begin());
+	std::copy(temp_r.begin(),temp_r.end(),camera_info_r.begin());
+	std::copy(temp_p.begin(),temp_p.end(),camera_info_p.begin());
 	
 	if( resource_str.size() == 0 )
 	{
@@ -160,6 +201,7 @@ int main(int argc, char **argv)
 	 * advertise publisher topics
 	 */
 	ROS_CREATE_PUBLISHER(sensor_msgs::Image, "raw", 2, image_pub);
+	ROS_CREATE_PUBLISHER(sensor_msgs::msg::CameraInfo, "camera_info", 2, camera_info_pub);
 
 
 	/*
@@ -199,4 +241,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-
