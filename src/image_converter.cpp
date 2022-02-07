@@ -176,8 +176,15 @@ bool imageConverter::Convert( sensor_msgs::Image& msg, imageFormat format, Pixel
 	msg.data.resize(msg_size);
 
 	// copy the converted image into the msg
-	memcpy(msg.data.data(), mInputCPU, msg_size);
-
+	if (format != IMAGE_GRAY8)
+	{
+		memcpy(msg.data.data(), mInputCPU, msg_size);
+	}
+	else 
+	{
+		memcpy(msg.data.data(), mOutputCPU, msg_size);
+	}
+		
 	// populate metadata
 	msg.width  = mWidth;
 	msg.height = mHeight;
