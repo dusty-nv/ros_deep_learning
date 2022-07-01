@@ -4,7 +4,8 @@
 	<arg name="input_height" default="0"/>
 	<arg name="input_codec" default="unknown"/>
 	<arg name="input_loop" default="0"/>
-
+	<arg name="input_latency" default="2000"/>
+	
 	<node pkg="ros_deep_learning" exec="video_source" output="screen">
 		<param name="resource" value="$(var input)"/>
 		<param name="width" value="$(var input_width)"/>
