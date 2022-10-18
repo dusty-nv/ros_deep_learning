@@ -16,7 +16,7 @@
 	</include>
 
 	<!-- DETECTNET -->
-	<arg name="model_name" default="ssd-mobilenet-v2"/>
+	<arg name="model_name" default="ssd-mobilenet-v1"/>
 	<arg name="model_path" default=""/>
 	<arg name="prototxt_path" default=""/>
 	<arg name="class_labels_path" default=""/>
@@ -25,7 +25,7 @@
 	<arg name="output_bbox" default=""/>
 	<arg name="overlay_flags" default="box,labels,conf"/>
 	<arg name="mean_pixel_value" default="0.0"/>
-	<arg name="threshold" default="0.5"/>
+	<arg name="threshold" default="0.85"/>
 
 	<node pkg="ros_deep_learning" type="detectnet" name="detectnet" output="screen">
 		<remap from="/detectnet/image_in" to="/video_source/raw"/>
@@ -52,5 +52,7 @@
 		<arg name="output_codec" value="$(arg output_codec)"/>
 		<arg name="output_bitrate" value="$(arg output_bitrate)"/>
 	</include>
+
+	<node pkg="ros_deep_learning" type="tracker.py" name="object_tracker" output="screen"/>
 
 </launch>

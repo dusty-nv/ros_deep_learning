@@ -119,7 +119,7 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 
 			ROS_INFO("object %i class #%u (%s)  confidence=%f", n, det->ClassID, net->GetClassDesc(det->ClassID), det->Confidence);
 			ROS_INFO("object %i bounding box (%f, %f)  (%f, %f)  w=%f  h=%f", n, det->Left, det->Top, det->Right, det->Bottom, det->Width(), det->Height()); 
-			
+			//ROS_INFO("lallal laa laa laaa laa laaa laaaaaa");
 			// create a detection sub-message
 			vision_msgs::Detection2D detMsg;
 
@@ -186,6 +186,8 @@ int main(int argc, char **argv)
 	float mean_pixel = 0.0f;
 	float threshold  = DETECTNET_DEFAULT_THRESHOLD;
 
+	std::string flip_method  = "FLIP_HORIZONTAL";
+
 	ROS_DECLARE_PARAMETER("model_name", model_name);
 	ROS_DECLARE_PARAMETER("model_path", model_path);
 	ROS_DECLARE_PARAMETER("prototxt_path", prototxt_path);
@@ -196,6 +198,7 @@ int main(int argc, char **argv)
 	ROS_DECLARE_PARAMETER("overlay_flags", overlay_str);
 	ROS_DECLARE_PARAMETER("mean_pixel_value", mean_pixel);
 	ROS_DECLARE_PARAMETER("threshold", threshold);
+	ROS_DECLARE_PARAMETER("flipMethod", flip_method);
 
 
 	/*
@@ -211,6 +214,7 @@ int main(int argc, char **argv)
 	ROS_GET_PARAMETER("overlay_flags", overlay_str);
 	ROS_GET_PARAMETER("mean_pixel_value", mean_pixel);
 	ROS_GET_PARAMETER("threshold", threshold);
+	ROS_GET_PARAMETER("flipMethod", flip_method);
 
 	overlay_flags = detectNet::OverlayFlagsFromStr(overlay_str.c_str());
 

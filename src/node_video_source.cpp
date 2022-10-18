@@ -19,13 +19,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
 #include "ros_compat.h"
 #include "image_converter.h"
-
 #include <jetson-utils/videoSource.h>
-
-
+#include <string>
 
 // globals	
 videoSource* stream = NULL;
@@ -39,6 +36,7 @@ bool aquireFrame()
 	imageConverter::PixelType* nextFrame = NULL;
 
 	// get the latest frame
+	//std::string frame_id = NULL;
 	if( !stream->Capture(&nextFrame, 1000) )
 	{
 		ROS_ERROR("failed to capture next frame");
@@ -63,6 +61,8 @@ bool aquireFrame()
 
 	// populate timestamp in header field
 	msg.header.stamp = ROS_TIME_NOW();
+	//msg.header.frame_id = *curr_file_id
+	//ROS_INFO(*curr_file_id);
 
 	// publish the message
 	image_pub->publish(msg);

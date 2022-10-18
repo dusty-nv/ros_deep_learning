@@ -1,0 +1,76 @@
+## command to run detectnet with custom detection file
+
+roslaunch ros_deep_learning detectnet.ros1.launch \
+input:="/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/person7_640_360" \
+output:="/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/person7_640_360.mp4" \
+model_path:=/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/ssd-mobilenet.onnx \
+class_labels_path:=/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/labels.txt \
+input_blob:=input_0 \
+output_cvg:=scores \
+output_bbox:=boxes \
+input_width:=640 \
+input_height:=360 \
+input_loop:=0 \
+input_codec:=jpg
+
+
+-->> detection using camera -->
+roslaunch ros_deep_learning detectnet.ros1.launch \
+input:="/dev/video0" \
+output:="Display://0" \
+model_path:=/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/ssd-mobilenet.onnx \
+class_labels_path:=/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/labels.txt \
+input_blob:=input_0 \
+output_cvg:=scores \
+output_bbox:=boxes \
+input_width:=640 \
+input_height:=360 \
+input_loop:=0 \
+input_codec:=jpg
+
+
+-- >> ANOTHER EX
+roslaunch ros_deep_learning detectnet.ros1.launch \
+input:="/dev/video0" \
+output:="Display://0" \
+model_path:=/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/open_palm/open_palm_ssd-mobilenet.onnx \
+class_labels_path:=/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/open_palm/labels.txt \
+input_blob:=input_0 \
+output_cvg:=scores \
+output_bbox:=boxes \
+input_width:=640 \
+input_height:=480 \
+input_loop:=0 \
+input_codec:=jpg \
+threshold:=0.9
+
+
+roslaunch ros_deep_learning detectnet.ros1.launch \
+input:="/dev/video0" \
+output:="/home/nvidia/ros_ws/src/detection_output" \
+model_path:=/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/open_palm/open_palm_ssd-mobilenet.onnx \
+class_labels_path:=/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/open_palm/labels.txt \
+input_blob:=input_0 \
+output_cvg:=scores \
+output_bbox:=boxes \
+input_width:=640 \
+input_height:=480 \
+input_loop:=0 \
+input_codec:=jpg \
+threshold:=0.9
+
+
+roslaunch ros_deep_learning detectnet.ros1.launch \
+input:="/dev/video0" \
+output:="/home/nvidia/ros_ws/src/detection_output" \
+model_path:=/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/open_palm/open_palm_ssd-mobilenet.onnx \
+class_labels_path:=/home/nvidia/ros_ws/src/ros_deep_learning/mbv1ssd_pedes_detector/open_palm/labels.txt \
+input_blob:=input_0 \
+output_cvg:=scores \
+output_bbox:=boxes \
+input_width:=640 \
+input_height:=480 \
+input_loop:=0 \
+input_codec:=jpg \
+threshold:=0.9
+
