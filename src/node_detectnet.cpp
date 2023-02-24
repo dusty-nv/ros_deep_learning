@@ -50,39 +50,6 @@ void info_callback()
 }
 
 
-// publish overlay image
-bool publish_overlay( detectNet::Detection* detections, int numDetections )
-{
-	// get the image dimensions
-	const uint32_t width  = input_cvt->GetWidth();
-	const uint32_t height = input_cvt->GetHeight();
-
-	// assure correct image size
-	if( !overlay_cvt->Resize(width, height, imageConverter::ROSOutputFormat) )
-		return false;
-
-	// generate the overlay
-	if( !net->Overlay(input_cvt->ImageGPU(), overlay_cvt->ImageGPU(), width, height, 
-				   imageConverter::InternalFormat, detections, numDetections, overlay_flags) )
-	{
-		return false;
-	}
-
-	// populate the message
-	sensor_msgs::Image msg;
-
-	if( !overlay_cvt->Convert(msg, imageConverter::ROSOutputFormat) )
-		return false;
-
-	// populate timestamp in header field
-	msg.header.stamp = ROS_TIME_NOW();
-
-	// publish the message	
-	overlay_pub->publish(msg);
-	ROS_DEBUG("publishing %ux%u overlay image", width, height);
-}
-
-
 // input image subscriber callback
 void img_callback( const sensor_msgs::ImageConstPtr input )
 {
@@ -129,8 +96,15 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 			float cx, cy;
 			det->Center(&cx, &cy);
 
-			detMsg.bbox.center.x = cx;
-			detMsg.bbox.center.y = cy;
+        #if ROS_DISTRO >= ROS_HUMBLE
+            detMsg.bbox.center.position.x = cx;
+            detMsg.bbox.center.position.y = cy;
+        #else
+            detMsg.bbox.center.x = cx;
+            detMsg.bbox.center.y = cy;
+        #endif
+			detMsg.bbox.center.position.x = cx;
+			detMsg.bbox.center.position.y = cy;
 
 			detMsg.bbox.center.theta = 0.0f;		// TODO optionally output object image
 
@@ -158,7 +132,33 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 
 	// generate the overlay (if there are subscribers)
 	if( ROS_NUM_SUBSCRIBERS(overlay_pub) > 0 )
-		publish_overlay(detections, numDetections);
+	{
+		// get the image dimensions
+		const uint32_t width  = input_cvt->GetWidth();
+		const uint32_t height = input_cvt->GetHeight();
+
+		// assure correct image size
+		if( !overlay_cvt->Resize(width, height, imageConverter::ROSOutputFormat) )
+			return;
+
+		// generate the overlay
+		if( !net->Overlay(input_cvt->ImageGPU(), overlay_cvt->ImageGPU(), width, height,
+						imageConverter::InternalFormat, detections, numDetections, overlay_flags) )
+			return;
+
+		// populate the message
+		sensor_msgs::Image msg;
+
+		if( !overlay_cvt->Convert(msg, imageConverter::ROSOutputFormat) )
+			return;
+
+		// populate timestamp in header field
+		msg.header.stamp = ROS_TIME_NOW();
+
+		// publish the message
+		overlay_pub->publish(msg);
+		ROS_DEBUG("publishing %ux%u overlay image", width, height);
+	}
 }
 
 

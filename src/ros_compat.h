@@ -30,6 +30,7 @@
 #define ROS_ELOQUENT 4
 #define ROS_FOXY     5
 #define ROS_GALACTIC 6
+#define ROS_HUMBLE 7
 
 #ifdef ROS1
 

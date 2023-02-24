@@ -53,7 +53,11 @@ else()
 		find_package(sensor_msgs REQUIRED)
 		find_package(vision_msgs REQUIRED)
 
-		set(CMAKE_CXX_STANDARD 14)
+		if(ROS_DISTRO=="humble")
+			set(CMAKE_CXX_STANDARD 17)
+		else()
+			set(CMAKE_CXX_STANDARD 14)
+		endif()
 		include_directories(${CUDA_INCLUDE_DIRS})
 		add_definitions(-DROS2 -DROS_DISTRO=${ROS_DISTRO})
 

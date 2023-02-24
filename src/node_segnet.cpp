@@ -77,6 +77,7 @@ bool publish_overlay( uint32_t width, uint32_t height )
 
 	// publish the message
 	overlay_pub->publish(msg);
+    return true;
 }
 
 
