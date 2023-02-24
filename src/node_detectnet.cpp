@@ -96,8 +96,15 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 			float cx, cy;
 			det->Center(&cx, &cy);
 
-			detMsg.bbox.center.x = cx;
-			detMsg.bbox.center.y = cy;
+        #if ROS_DISTRO >= ROS_HUMBLE
+            detMsg.bbox.center.position.x = cx;
+            detMsg.bbox.center.position.y = cy;
+        #else
+            detMsg.bbox.center.x = cx;
+            detMsg.bbox.center.y = cy;
+        #endif
+			detMsg.bbox.center.position.x = cx;
+			detMsg.bbox.center.position.y = cy;
 
 			detMsg.bbox.center.theta = 0.0f;		// TODO optionally output object image
 
