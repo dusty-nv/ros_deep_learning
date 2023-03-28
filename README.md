@@ -3,7 +3,7 @@ This repo contains DNN inference nodes and camera/video streaming nodes for ROS/
 
 The nodes use the image recognition, object detection, and semantic segmentation DNN's from the [`jetson-inference`](https://github.com/dusty-nv/jetson-inference) library and NVIDIA [Hello AI World](https://github.com/dusty-nv/jetson-inference#hello-ai-world) tutorial, which come with several built-in pretrained networks for classification, detection, and segmentation and the ability to load customized user-trained models.
 
-The camera/video streaming nodes support the following [input/output interfaces](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md):
+The camera & video streaming nodes support the following [input/output interfaces](https://github.com/dusty-nv/jetson-inference/blob/master/docs/aux-streaming.md):
 
 * MIPI CSI cameras
 * V4L2 cameras
