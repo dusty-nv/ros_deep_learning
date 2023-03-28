@@ -228,17 +228,8 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		// determine which built-in model was requested
-		segNet::NetworkType model = segNet::NetworkTypeFromStr(model_name.c_str());
-
-		if( model == segNet::SEGNET_CUSTOM )
-		{
-			ROS_ERROR("invalid built-in pretrained model name '%s', defaulting to cityscapes", model_name.c_str());
-			model = segNet::FCN_RESNET18_CITYSCAPES_1024x512;
-		}
-
 		// create network using the built-in model
-		net = segNet::Create(model);
+		net = segNet::Create(model_name.c_str());
 	}
 
 	if( !net )

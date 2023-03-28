@@ -195,17 +195,8 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		// determine which built-in model was requested
-		imageNet::NetworkType model = imageNet::NetworkTypeFromStr(model_name.c_str());
-
-		if( model == imageNet::CUSTOM )
-		{
-			ROS_ERROR("invalid built-in pretrained model name '%s', defaulting to googlenet", model_name.c_str());
-			model = imageNet::GOOGLENET;
-		}
-
 		// create network using the built-in model
-		net = imageNet::Create(model);
+		net = imageNet::Create(model_name.c_str());
 	}
 
 	if( !net )

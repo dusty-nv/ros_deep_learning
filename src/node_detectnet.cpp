@@ -129,9 +129,14 @@ void img_callback( const sensor_msgs::ImageConstPtr input )
 			float cx, cy;
 			det->Center(&cx, &cy);
 
+		#if ROS_DISTRO >= ROS_HUMBLE
+			detMsg.bbox.center.position.x = cx;
+			detMsg.bbox.center.position.y = cy;
+		#else
 			detMsg.bbox.center.x = cx;
 			detMsg.bbox.center.y = cy;
-
+		#endif
+		
 			detMsg.bbox.center.theta = 0.0f;		// TODO optionally output object image
 
 			// create classification hypothesis
@@ -227,17 +232,8 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		// determine which built-in model was requested
-		detectNet::NetworkType model = detectNet::NetworkTypeFromStr(model_name.c_str());
-
-		if( model == detectNet::CUSTOM )
-		{
-			ROS_ERROR("invalid built-in pretrained model name '%s', defaulting to pednet", model_name.c_str());
-			model = detectNet::SSD_MOBILENET_V2;
-		}
-
 		// create network using the built-in model
-		net = detectNet::Create(model, threshold);
+		net = detectNet::Create(model_name.c_str());
 	}
 
 	if( !net )

@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 	
 	int video_width = video_options.width;
 	int video_height = video_options.height;
-	int rtsp_latency = video_options.rtspLatency;
+	int latency = video_options.latency;
 	
 	ROS_DECLARE_PARAMETER("resource", resource_str);
 	ROS_DECLARE_PARAMETER("codec", codec_str);
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 	ROS_DECLARE_PARAMETER("framerate", video_options.frameRate);
 	ROS_DECLARE_PARAMETER("loop", video_options.loop);
 	ROS_DECLARE_PARAMETER("flip", flip_str);
-	ROS_DECLARE_PARAMETER("rtsp_latency", rtsp_latency);
+	ROS_DECLARE_PARAMETER("latency", latency);
 	
 	/*
 	 * retrieve parameters
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 	ROS_GET_PARAMETER("framerate", video_options.frameRate);
 	ROS_GET_PARAMETER("loop", video_options.loop);
 	ROS_GET_PARAMETER("flip", flip_str);
-	ROS_GET_PARAMETER("rtsp_latency", rtsp_latency);
+	ROS_GET_PARAMETER("latency", latency);
 	
 	if( resource_str.size() == 0 )
 	{
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	
 	video_options.width = video_width;
 	video_options.height = video_height;
-	video_options.rtspLatency = rtsp_latency;
+	video_options.latency = latency;
 	
 	ROS_INFO("opening video source: %s", resource_str.c_str());
 

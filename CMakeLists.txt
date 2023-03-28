@@ -16,6 +16,7 @@ string(TOUPPER $ENV{ROS_DISTRO} ROS_DISTRO)
 set(ROS_DISTRO "ROS_${ROS_DISTRO}")
 message("detected ROS_DISTRO=${ROS_DISTRO}")
 
+find_package(VPI 2.0)
 link_directories(/usr/lib/aarch64-linux-gnu/tegra)
 
 if( catkin_FOUND )
