@@ -1,5 +1,5 @@
-# Deep Learning Nodes for ROS/ROS2
-This repo contains deep learning inference nodes and camera/video streaming nodes for ROS/ROS2 with support for NVIDIA **[Jetson Nano / TX1 / TX2 / Xavier / Orin](https://developer.nvidia.com/embedded-computing)** devices and TensorRT.
+# DNN Inference Nodes for ROS/ROS2
+This repo contains DNN inference nodes and camera/video streaming nodes for ROS/ROS2 with support for NVIDIA **[Jetson Nano / TX1 / TX2 / Xavier / Orin](https://developer.nvidia.com/embedded-computing)** devices and TensorRT.
 
 The nodes use the image recognition, object detection, and semantic segmentation DNN's from the [`jetson-inference`](https://github.com/dusty-nv/jetson-inference) library and NVIDIA [Hello AI World](https://github.com/dusty-nv/jetson-inference#hello-ai-world) tutorial, which come with several built-in pretrained networks for classification, detection, and segmentation and the ability to load customized user-trained models.
 
@@ -18,9 +18,6 @@ Various distribution of ROS are supported either from source or through containe
 ### Table of Contents
 
 * [Installation](#installation)
-	* [jetson-inference](#jetson-inference)
-	* [ROS/ROS2](#rosros2)
-	* [ros_deep_learning](#ros_deep_learning-1)
 * [Testing](#testing)
 	* [Video Viewer](#video-viewer)
 	* [imagenet Node](#imagenet-node)
@@ -35,7 +32,7 @@ Various distribution of ROS are supported either from source or through containe
 
 ## Installation
 
-The easiest way to get up and running is by running one of the containers that is already built with ROS/ROS2, jetson-inference, and the ros_deep_learning nodes already included:
+The easiest way to get up and running is by running one of the containers that is already built with ROS/ROS2, jetson-inference, and the ros_deep_learning package pre-installed:
 
 ``` bash
 git clone https://github.com/dusty-nv/ros_deep_learning
@@ -43,16 +40,12 @@ cd ros_deep_learning
 docker/run.sh --ros=foxy
 ```
 
-The `--ros` argument to the [`docker/run.sh`](docker/run.sh) script selects the ROS distro to use (the default is Foxy).  Containers with ros_deep_learning are available for Noetic, Foxy, Galactic, and Humble.  They use the `ros:$ROS_DISTRO-pytorch-l4t-*` images built from [jetson-containers](https://github.com/dusty-nv/jetson-containers).
+The `--ros` argument to the [`docker/run.sh`](docker/run.sh) script selects the ROS distro to use (the default is Foxy).  Containers with ros_deep_learning are available for Noetic, Foxy, Galactic, and Humble.  They use the `ros:$ROS_DISTRO-pytorch-l4t-*` container images built from [jetson-containers](https://github.com/dusty-nv/jetson-containers).
 
 For previous information about building the ros_deep_learning package for an uncontainerized ROS installation, expand the section below (the parts about installing ROS may require adapting for the particular version of ROS/ROS2 that you want to install)
 
 <details>
 <summary>Legacy Install Instructions</summary>
-
-First, install the latest version of [JetPack](https://developer.nvidia.com/embedded/jetpack) on your Jetson.
-
-Then, follow the steps below to install the needed components on your Jetson.
 
 ### jetson-inference
 
