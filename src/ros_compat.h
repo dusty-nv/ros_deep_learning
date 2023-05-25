@@ -31,6 +31,7 @@
 #define ROS_FOXY     5
 #define ROS_GALACTIC 6
 #define ROS_HUMBLE   7
+#define ROS_IRON     8
 
 #ifdef ROS1
 
