@@ -32,17 +32,17 @@ Various distribution of ROS are supported either from source or through containe
 
 ## Installation
 
-The easiest way to get up and running is by cloning [jetson-inference](https://github.com/dusty-nv/jetson-inference) (which ros_deep_learning is a submodule of) and running the pre-built container, which automatically mounts the model directories and devices:
+The easiest way to get up and running is by cloning [jetson-inference](https://github.com/dusty-nv/jetson-inference) (which ros_deep_learning is a submodule of) and running the pre-built container, which automatically mounts the required model directories and devices:
 
 ``` bash
-git clone --recursive --depth=1 https://github.com/dusty-nv/jetson-inference
-cd jetson-inference
-docker/run.sh --ros=humble
+$ git clone --recursive --depth=1 https://github.com/dusty-nv/jetson-inference
+$ cd jetson-inference
+$ docker/run.sh --ros=humble  # noetic, foxy, galactic, humble, iron
 ```
 
-> **note**: the ros_deep_learning nodes rely on data from the jetson-inference tree for storing models, so clone and mount `jetson-inference/data` if you're using your own container or source installation.
+> **note**: the ros_deep_learning nodes rely on data from the jetson-inference tree for storing models, so manually clone and mount `jetson-inference/data` if you're using your own container or source installation other than above.
 
-The `--ros` argument to the [`docker/run.sh`](https://github.com/dusty-nv/jetson-inference/blob/master/docker/run.sh) script selects the ROS distro to use.  Containers with the ros_deep_learning package are available for Noetic, Foxy, Galactic, Humble, and Iron.  They use the `ros:$ROS_DISTRO-pytorch-l4t-*` container images built from [jetson-containers](https://github.com/dusty-nv/jetson-containers).
+The `--ros` argument to the [`docker/run.sh`](https://github.com/dusty-nv/jetson-inference/blob/master/docker/run.sh) script selects the ROS distro to use.  They use the `ros:$ROS_DISTRO-pytorch-l4t-*` container images built from [jetson-containers](https://github.com/dusty-nv/jetson-containers), and include the jetson-inference and ros_deep_learning packages.
 
 For previous information about building the ros_deep_learning package for an uncontainerized ROS installation, expand the section below (the parts about installing ROS may require adapting for the particular version of ROS/ROS2 that you want to install)
 
