@@ -40,9 +40,9 @@ $ cd jetson-inference
 $ docker/run.sh --ros=humble  # noetic, foxy, galactic, humble, iron
 ```
 
-> **note**: the ros_deep_learning nodes rely on data from the jetson-inference tree for storing models, so manually clone and mount `jetson-inference/data` if you're using your own container or source installation other than above.
+> **note**: the ros_deep_learning nodes rely on data from the jetson-inference tree for storing models, so clone and mount `jetson-inference/data` if you're using your own container or source installation method.
 
-The `--ros` argument to the [`docker/run.sh`](https://github.com/dusty-nv/jetson-inference/blob/master/docker/run.sh) script selects the ROS distro to use.  They use the `ros:$ROS_DISTRO-pytorch-l4t-*` container images built from [jetson-containers](https://github.com/dusty-nv/jetson-containers), and include the jetson-inference and ros_deep_learning packages.
+The `--ros` argument to the [`docker/run.sh`](https://github.com/dusty-nv/jetson-inference/blob/master/docker/run.sh) script selects the ROS distro to use.  They in turn use the `ros:$ROS_DISTRO-pytorch-l4t-*` container images built from [jetson-containers](https://github.com/dusty-nv/jetson-containers), which include jetson-inference and ros_deep_learning.
 
 For previous information about building the ros_deep_learning package for an uncontainerized ROS installation, expand the section below (the parts about installing ROS may require adapting for the particular version of ROS/ROS2 that you want to install)
 
