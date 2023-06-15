@@ -9,6 +9,7 @@
 		<param name="resource" value="$(arg input)"/>
 		<param name="width" value="$(arg input_width)"/>
 		<param name="height" value="$(arg input_height)"/>
+		<param name="codec" value="$(arg input_codec)"/>
 		<param name="loop" value="$(arg input_loop)"/>
 	</node>
 
