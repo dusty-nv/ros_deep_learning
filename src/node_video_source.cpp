@@ -25,13 +25,15 @@
 
 #include <jetson-utils/videoSource.h>
 
-
+#include <image_transport/image_transport.h>
 
 // globals	
 videoSource* stream = NULL;
 imageConverter* image_cvt = NULL;
 Publisher<sensor_msgs::Image> image_pub = NULL;
 
+sensor_msgs::CameraInfo c_info;
+Publisher<sensor_msgs::CameraInfo> camera_info_pub = NULL;
 
 // aquire and publish camera frame
 bool aquireFrame()
@@ -68,6 +70,11 @@ bool aquireFrame()
 	image_pub->publish(msg);
 	ROS_DEBUG("published %ux%u video frame", stream->GetWidth(), stream->GetHeight());
 	
+    // c_info.header.seq = pData->frame;
+    c_info.header.stamp = msg.header.stamp;
+    c_info.header.frame_id = msg.header.frame_id;
+    camera_info_pub->publish(c_info);
+
 	return true;
 }
 
@@ -78,7 +85,9 @@ int main(int argc, char **argv)
 	/*
 	 * create node instance
 	 */
-	ROS_CREATE_NODE("video_source");
+	ROS_CREATE_NODE("camera");
+
+	ros::NodeHandle nh_params("~");
 
 	/*
 	 * declare parameters
@@ -102,6 +111,7 @@ int main(int argc, char **argv)
 	ROS_DECLARE_PARAMETER("flip", flip_str);
 	ROS_DECLARE_PARAMETER("latency", latency);
 	
+
 	/*
 	 * retrieve parameters
 	 */
@@ -114,6 +124,31 @@ int main(int argc, char **argv)
 	ROS_GET_PARAMETER("flip", flip_str);
 	ROS_GET_PARAMETER("latency", latency);
 	
+	std::string camera_info_url;
+	std::string camera_name;
+
+	ROS_GET_PARAMETER_OR("camera_info_url", camera_info_url, std::string("package://ros_deep_learning/camera_info/camera.yaml"));
+	ROS_GET_PARAMETER_OR("camera_name", camera_name, std::string("camera"));
+
+	// I'm not sure how to write this lines on ros_compact.h
+	camera_info_manager::CameraInfoManager c_info_man(nh_params, camera_name, camera_info_url);
+	if (!c_info_man.loadCameraInfo(camera_info_url)) {
+		ROS_INFO("Calibration file missing. Camera not calibrated");
+	} else {
+		c_info = c_info_man.getCameraInfo();
+		ROS_INFO("Camera successfully calibrated from default file");
+	}
+
+	if (!c_info_man.loadCameraInfo("")) {
+		ROS_INFO("No device specifc calibration found");
+	} else {
+		c_info = c_info_man.getCameraInfo();
+		ROS_INFO("Camera successfully calibrated from device specifc file");
+	}
+	// Create a Camera_Info publisher
+	ROS_CREATE_PUBLISHER(sensor_msgs::CameraInfo, "camera_info", 1, camera_info_pub);
+
+
 	if( resource_str.size() == 0 )
 	{
 		ROS_ERROR("resource param wasn't set - please set the node's resource parameter to the input device/filename/URL");
@@ -159,7 +194,7 @@ int main(int argc, char **argv)
 	/*
 	 * advertise publisher topics
 	 */
-	ROS_CREATE_PUBLISHER(sensor_msgs::Image, "raw", 2, image_pub);
+	ROS_CREATE_PUBLISHER(sensor_msgs::Image, "image_raw", 2, image_pub);
 
 
 	/*
