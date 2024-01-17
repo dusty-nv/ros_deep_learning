@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 
 	if( resource_str.size() == 0 )
 	{
-		ROS_ERROR("resource param wasn't set - please set the node's resource parameter to the input device/filename/URL");
+		ROS_ERROR("resource param wasn't set - please set the node's resource parameter to the output device/filename/URL");
 		return 0;
 	}
 
