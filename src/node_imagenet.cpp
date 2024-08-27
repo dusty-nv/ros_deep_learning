@@ -90,6 +90,9 @@ bool publish_overlay( int img_class, float confidence )
 	// publish the message	
 	overlay_pub->publish(msg);
 	ROS_DEBUG("publishing %ux%u overlay image", width, height);
+
+	// avoid memory corruption
+	return true;
 }
 
 
