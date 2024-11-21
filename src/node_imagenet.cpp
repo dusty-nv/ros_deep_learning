@@ -163,12 +163,15 @@ int main(int argc, char **argv)
 	std::string input_blob = IMAGENET_DEFAULT_INPUT;
 	std::string output_blob = IMAGENET_DEFAULT_OUTPUT;
 
+	int subscriber_queue_length = 5;
+
 	ROS_DECLARE_PARAMETER("model_name", model_name);
 	ROS_DECLARE_PARAMETER("model_path", model_path);
 	ROS_DECLARE_PARAMETER("prototxt_path", prototxt_path);
 	ROS_DECLARE_PARAMETER("class_labels_path", class_labels_path);
 	ROS_DECLARE_PARAMETER("input_blob", input_blob);
 	ROS_DECLARE_PARAMETER("output_blob", output_blob);
+	ROS_DECLARE_PARAMETER("subscriber_queue_length", subscriber_queue_length);
 
 
 	/*
@@ -180,6 +183,7 @@ int main(int argc, char **argv)
 	ROS_GET_PARAMETER("class_labels_path", class_labels_path);
 	ROS_GET_PARAMETER("input_blob", input_blob);
 	ROS_GET_PARAMETER("output_blob", output_blob);
+	ROS_GET_PARAMETER("subscriber_queue_length", subscriber_queue_length);
 
 	
 	/*
@@ -266,7 +270,7 @@ int main(int argc, char **argv)
 	/*
 	 * subscribe to image topic
 	 */
-	auto img_sub = ROS_CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", 5, img_callback);
+	auto img_sub = ROS_CREATE_SUBSCRIBER(sensor_msgs::Image, "image_in", subscriber_queue_length, img_callback);
 
 
 	/*
